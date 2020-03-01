@@ -1,0 +1,19 @@
+version(1);
+
+project_name = "Snail Jumpy";
+
+patterns = {
+"*.cpp",
+"*.h",
+"*.c",
+"*.vert",
+"*.frag",
+"*.glsl",
+"*.bat"
+};
+
+load_paths = {
+{ {
+		{".", .relative = true, .recursive = true},
+	}, .os = "win"},
+};

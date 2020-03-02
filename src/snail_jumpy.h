@@ -52,7 +52,7 @@ struct world
 
 struct entity
 {
-    v2 Pos, dPos;
+    v2 P, dP;
 };
 
 struct game_state

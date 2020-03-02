@@ -1,5 +1,9 @@
 #include <windows.h>
 
+#ifdef CopyMemory
+#undef CopyMemory
+#endif
+
 #include "snail_jumpy_types.cpp"
 #include "win32_snail_jumpy.h"
 
@@ -59,7 +63,7 @@ DEBUG_READ_FILE_SIG(Win32ReadFile)
     }
     return(Result);
 }
-    
+
 DEBUG_FREE_FILE_DATA_SIG(Win32FreeFileData)
 {
     VirtualFree(FileData, 0, MEM_RELEASE);
@@ -91,7 +95,7 @@ Win32ResizeDIBSection(Win32_Backbuffer *Buffer, int Width, int Height)
     }
     // NOTE(Tyler): We are locking the width and height
     Width = 960;
-     Height = 540;
+    Height = 540;
     
     Buffer->Width = Width;
     Buffer->Height = Height;
@@ -122,8 +126,8 @@ Win32CopyBackbufferToWindow(HDC DeviceContext, RECT *WindowRect, Win32_Backbuffe
     PatBlt(DeviceContext, 0, 560, WindowWidth, WindowHeight-560, BLACKNESS);
     
     // NOTE(Tyler): We will only render 960x540 for now
-     WindowWidth = 960;
-     WindowHeight = 540;
+    WindowWidth = 960;
+    WindowHeight = 540;
     
     StretchDIBits(DeviceContext, 
 #if 0
@@ -149,9 +153,9 @@ Win32ProcessKeyboardInput(platform_button_state *Button, b32 IsDown)
 
 LRESULT CALLBACK 
 Win32MainWindowProc(HWND Window,
-                            UINT Message,
-                            WPARAM WParam,
-                            LPARAM LParam)
+                    UINT Message,
+                    WPARAM WParam,
+                    LPARAM LParam)
 {
     LRESULT Result = 0;
     switch (Message)
@@ -199,8 +203,8 @@ Win32MainWindowProc(HWND Window,
         {
             u32 VKCode = (u32)WParam;
             
-             b32 WasDown = ((LParam & (1 << 30)) != 0);
-             b32 IsDown = ((LParam & (1UL << 31)) == 0);
+            b32 WasDown = ((LParam & (1 << 30)) != 0);
+            b32 IsDown = ((LParam & (1UL << 31)) == 0);
             if (WasDown != IsDown)
             {
                 if (VKCode == 'W')
@@ -227,9 +231,9 @@ Win32MainWindowProc(HWND Window,
         }break;
         
         default:
-    {
-        Result = DefWindowProc(Window, Message, WParam, LParam);
-    }break;
+        {
+            Result = DefWindowProc(Window, Message, WParam, LParam);
+        }break;
     }
     return(Result);
 }
@@ -251,9 +255,9 @@ Win32SecondsElapsed(LARGE_INTEGER Begin, LARGE_INTEGER End)
 
 int CALLBACK
 WinMain(HINSTANCE Instance,
-                      HINSTANCE PrevInstance,
-                      LPSTR CommandLine,
-                      int ShowCode)
+        HINSTANCE PrevInstance,
+        LPSTR CommandLine,
+        int ShowCode)
 {
     WNDCLASS WindowClass = {0};
     
@@ -268,12 +272,12 @@ WinMain(HINSTANCE Instance,
         // NOTE(Tyler): The window is made at whatever size but we only render 960 x 540
         HWND Window = CreateWindowEx(0,
                                      WindowClass.lpszClassName,
-                                   "Snail Jumpy",
-                                   WS_OVERLAPPEDWINDOW|WS_VISIBLE,
+                                     "Snail Jumpy",
+                                     WS_OVERLAPPEDWINDOW|WS_VISIBLE,
                                      CW_USEDEFAULT, CW_USEDEFAULT,
                                      CW_USEDEFAULT, CW_USEDEFAULT,
                                      0, 
-                                   0,
+                                     0,
                                      Instance,
                                      0);
         if (Window)
@@ -285,7 +289,7 @@ WinMain(HINSTANCE Instance,
             LARGE_INTEGER LastCounter = Win32GetWallClock();
             f32 TargetSecondsPerFrame = 1.0f/30.0f;
             
-             game_memory GameMemory = {0};
+            game_memory GameMemory = {0};
             GameMemory.PermanentStorageSize = Megabytes(4);
             GameMemory.PermanentStorage = VirtualAlloc(0, GameMemory.PermanentStorageSize, MEM_COMMIT, PAGE_READWRITE);
             GameMemory.TransientStorageSize = Gigabytes(4);
@@ -325,7 +329,7 @@ WinMain(HINSTANCE Instance,
                 GameUpdateAndRender(&Thread, &GameMemory, &PlatformAPI, &UserInput, &GameBackbuffer);
                 
                 
-                 f32 SecondsElapsed = Win32SecondsElapsed(LastCounter, Win32GetWallClock());
+                f32 SecondsElapsed = Win32SecondsElapsed(LastCounter, Win32GetWallClock());
                 if (SecondsElapsed < TargetSecondsPerFrame)
                 {
                     while (SecondsElapsed < TargetSecondsPerFrame)

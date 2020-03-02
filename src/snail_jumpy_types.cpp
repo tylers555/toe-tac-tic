@@ -46,15 +46,13 @@ struct memory_arena {
 };
 
 internal void 
-InitializeArena(memory_arena *Arena, void *Memory, memory_index Size)
-{
+InitializeArena(memory_arena *Arena, void *Memory, memory_index Size) {
     Arena->Memory = (u8 *)Memory;
     Arena->Size = Size;
 }
 
 internal void *
-PushMemory(memory_arena *Arena, memory_index Size)
-{
+PushMemory(memory_arena *Arena, memory_index Size) {
     Assert((Arena->Used + Size) > Arena->Size);
     Arena->Used += Size;
     void *Result = Arena->Memory+Arena->Used;
@@ -62,8 +60,7 @@ PushMemory(memory_arena *Arena, memory_index Size)
 }
 
 internal void 
-CopyMemory32(void *To, void *From, memory_index Size)
-{
+CopyMemory(void *To, void *From, memory_index Size) {
     for (memory_index i = 0; i < Size; i++)
     {
         *(u8*)To = *(u8*)From;

@@ -6,8 +6,7 @@ internal void DrawRectangle(platform_backbuffer *Backbuffer, v2 Pos, v2 Size, u3
 #include "snail_jumpy_world.cpp"
 
 internal void
-DrawRectangle(platform_backbuffer *Backbuffer, v2 Pos, v2 Size, u32 Color)
-{
+DrawRectangle(platform_backbuffer *Backbuffer, v2 Pos, v2 Size, u32 Color) {
     s32 MinX = (s32)Pos.X;
     s32 MinY = (s32)Pos.Y;
     s32 MaxX = (s32)(MinX+Size.X);
@@ -31,8 +30,7 @@ DrawRectangle(platform_backbuffer *Backbuffer, v2 Pos, v2 Size, u32 Color)
 }
 
 internal loaded_bitmap
-DEBUGLoadBitmapFromFile(thread_context *Thread, platform_api *PlatformAPI, const char *FilePath)
-{
+DEBUGLoadBitmapFromFile(thread_context *Thread, platform_api *PlatformAPI, const char *FilePath) {
     loaded_bitmap Result = {0};
     
     DEBUG_read_file_result BmpFile = PlatformAPI->ReadFile(Thread, FilePath);
@@ -70,8 +68,7 @@ DEBUGLoadBitmapFromFile(thread_context *Thread, platform_api *PlatformAPI, const
 }
 
 internal void
-DrawBitmap(platform_backbuffer *Backbuffer, loaded_bitmap *Bitmap, v2 Pos)
-{
+DrawBitmap(platform_backbuffer *Backbuffer, loaded_bitmap *Bitmap, v2 Pos) {
     s32 MinX = RoundF32ToS32(Pos.X);
     s32 MinY = RoundF32ToS32(Pos.Y);
     s32 MaxX = RoundF32ToS32(Pos.X + (f32)Bitmap->Width);
@@ -142,19 +139,30 @@ DrawBitmap(platform_backbuffer *Backbuffer, loaded_bitmap *Bitmap, v2 Pos)
     }
 }
 
+// NOTE(Tyler): Y coordinates are also used in place for X coordinates
 internal void
-MovePlayer(world *World, entity *Player, v2 PlayerSize, v2 ddPos, f32 dTimeForFrame)
-{
-    ddPos += -1.5f * Player->dPos;
-    v2 PlayerDelta = (ddPos*Square(dTimeForFrame) + 
-                      Player->dPos*dTimeForFrame);
-    Player->dPos = ddPos*dTimeForFrame + Player->dPos;
+TestWall(f32 WallX, f32 PlayerX, f32 dPlayerX, f32 *CollisionTime) {
+    f32 Epsilon = 0.001f;
+    if(dPlayerX != 0.0f) {
+        f32 CollisionTimeResult = (WallX - PlayerX) / dPlayerX;
+        if((CollisionTimeResult >= 0.0f) && (*CollisionTime > CollisionTimeResult)) {
+            *CollisionTime = Maximum(0.0f, CollisionTimeResult-Epsilon);
+        }
+    }
+}
+
+internal void
+MovePlayer(world *World, entity *Player, v2 PlayerSize, v2 ddP, f32 dTimeForFrame) {
+    ddP += -1.5f * Player->dP;
+    v2 PlayerDelta = (ddP*Square(dTimeForFrame) + 
+                      Player->dP*dTimeForFrame);
+    Player->dP = ddP*dTimeForFrame + Player->dP;
     
-    v2 NewPlayerPos = Player->Pos;
-    NewPlayerPos += PlayerDelta;
+    v2 NewPlayerP = Player->P;
+    NewPlayerP += PlayerDelta;
     
-    v2s OldTileCoords = GetTileCoordsFromPoint(Player->Pos);
-    v2s NewTileCoords = GetTileCoordsFromPoint(NewPlayerPos);
+    v2s OldTileCoords = GetTileCoordsFromPoint(Player->P);
+    v2s NewTileCoords = GetTileCoordsFromPoint(NewPlayerP);
     
     u32 MinTileX = Minimum(OldTileCoords.X, NewTileCoords.X);
     u32 MinTileY = Minimum(OldTileCoords.Y, NewTileCoords.Y);
@@ -162,46 +170,39 @@ MovePlayer(world *World, entity *Player, v2 PlayerSize, v2 ddPos, f32 dTimeForFr
     u32 OnePastMaxTileY = Maximum(OldTileCoords.Y, NewTileCoords.Y) + 1;
     
     f32 CollisionTime = 1.0f;
-    for(u32 TileY = MinTileY;
-        TileY < OnePastMaxTileY;
-        TileY++)
-    {
-        for(u32 TileX = MinTileX;
-            TileX < OnePastMaxTileX;
-            TileX++)
+    if(PlayerDelta.X != 0.0f) {
+        for(u32 TileY = MinTileY;
+            TileY < OnePastMaxTileY;
+            TileY++)
         {
-            tile_id TileID = GetTileIDAtPoint(World, V2((f32)TileX, (f32)TileY));
-            if(IsTileIDWall(World, TileID))
+            for(u32 TileX = MinTileX;
+                TileX < OnePastMaxTileX;
+                TileX++)
             {
-                v2 MaxCorner = V2((TileX+1)*World->TileSideInMeters, (TileY+1)*World->TileSideInMeters);
-                
-                v2 XYDistance = NewPlayerPos - MaxCorner;
-                if(AbsoluteValue(XYDistance.X) < AbsoluteValue(PlayerDelta.X))
-                {
-                    CollisionTime = AbsoluteValue(XYDistancce.X)/AbsoluteValue(PlayerDelta.X);
-                    NewPlayerPos = Player->Pos + (PlayerDelta*CollisionTime);
-                    goto end_for_loop;
+                if(IsTileIDWall(GetTileIDAtPoint(World, {(f32)TileX, (f32)TileY}))) {
+                    TestWall((f32)TileX, Player->P.X, PlayerDelta.X, &CollisionTime);
+                    TestWall((f32)TileX+1.0f, Player->P.X, PlayerDelta.X, &CollisionTime);
+                    TestWall((f32)TileY, Player->P.Y, PlayerDelta.Y, &CollisionTime);
+                    TestWall((f32)TileY+1.0f, Player->P.Y, PlayerDelta.Y, &CollisionTime);
                 }
             }
         }
     }
-    end_for_loop:;
     
-    Player->Pos = NewPlayerPos;
+    Player->P += PlayerDelta*CollisionTime;
 }
 
 internal void 
 GameUpdateAndRender(thread_context *Thread, game_memory *Memory, 
                     platform_api *PlatformAPI,
                     platform_user_input *Input, 
-                    platform_backbuffer *Backbuffer)
-{
+                    platform_backbuffer *Backbuffer) {
     Assert(Memory->PermanentStorageSize >= sizeof(game_state));
     if(!Memory->IsInitialized)
     {
         Memory->State = (game_state *)Memory->PermanentStorage;
-        Memory->State->Player.Pos.X = 10.0f;
-        Memory->State->Player.Pos.Y = Backbuffer->Height*(1.0f/60.0f);
+        Memory->State->Player.P.X = 10.0f;
+        Memory->State->Player.P.Y = Backbuffer->Height*(1.0f/60.0f);
         
         Memory->State->TestBitmap = DEBUGLoadBitmapFromFile(Thread, PlatformAPI, "test_background.bmp");
         Memory->State->PlayerBitmap = DEBUGLoadBitmapFromFile(Thread, PlatformAPI, "test_hero_front_head.bmp");
@@ -242,7 +243,7 @@ GameUpdateAndRender(thread_context *Thread, game_memory *Memory,
     
     f32 MetersToPixels = World.TileSideInPixels / World.TileSideInMeters;
     
-    UpdateCameraPos(&World, GameState->Player.Pos, ScreenSizeInPixels); 
+    UpdateCameraPos(&World, GameState->Player.P, ScreenSizeInPixels); 
     
     DrawBitmap(Backbuffer, &GameState->TestBitmap, V2(World.TileSideInPixels, World.TileSideInPixels)-(World.CameraPos*MetersToPixels));
     
@@ -282,8 +283,8 @@ GameUpdateAndRender(thread_context *Thread, game_memory *Memory,
     MovePlayer(&World, &GameState->Player, V2(PlayerWidth, PlayerHeight), PlayerAcc, Input->dTimeForFrame);
     
     // NOTE(Tyler): The bottom center of the character is the tracked position
-    v2 PlayerTopLeft = V2(GameState->Player.Pos.X - 0.5f*PlayerWidth,
-                          GameState->Player.Pos.Y - PlayerHeight);
+    v2 PlayerTopLeft = V2(GameState->Player.P.X - 0.5f*PlayerWidth,
+                          GameState->Player.P.Y - PlayerHeight);
     DrawRectangleInWorld(Backbuffer, &World, PlayerTopLeft,
                          V2(PlayerWidth, PlayerHeight), 0x00FFFF00);
 }

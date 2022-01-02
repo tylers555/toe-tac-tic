@@ -1,0 +1,570 @@
+# //////////////////////////////////////////////////////////////////////////
+#                                 Animations
+# //////////////////////////////////////////////////////////////////////////
+: Animation player
+	
+# //////////////////////////////////////////////////////////////////////////
+#                                Spritesheets
+# //////////////////////////////////////////////////////////////////////////
+
+: SpriteSheet player
+    size 16 16
+    piece 0 "asset_sprite_sheets/test_avatar_sprite_sheet2.png"
+        consecutive  0 17 8 0
+        consecutive 17 17 8 0
+        consecutive 34  6 8 0
+        consecutive 40  6 8 0
+        consecutive 46  5 8 0
+        consecutive 51  5 8 0
+        consecutive 56  1 8 0
+        consecutive 57  1 8 0
+        consecutive 58  2 8 0
+        consecutive 60  2 8 0
+    state_none
+        left  1
+        right 2
+    state_idle
+        left  1
+        right 2
+    state_moving
+        left  3
+        right 4
+    state_jumping
+        left  7
+        right 8
+    state_falling
+        left  9
+        right 10
+
+# : SpriteSheet player
+: Ignore
+	   size 16 16
+	   piece 0 "asset_sprite_sheets/overworld_avatar_sprite_sheet.png"
+        consecutive  0 3 8 0
+        consecutive  3 3 8 0
+        consecutive  6 3 8 0
+        consecutive  9 3 8 0
+        consecutive 12 3 8 0
+        consecutive 15 3 8 0
+        consecutive 18 3 8 0
+        consecutive 21 3 8 0
+        consecutive 24 4 8 0
+        consecutive 28 5 8 0
+        consecutive 33 5 8 0
+        consecutive 38 5 8 0
+        consecutive 43 4 8 0
+        consecutive 47 5 8 0
+        consecutive 52 5 8 0
+        consecutive 57 5 8 0
+#	   frame_counts Array(3 3 3 3 3 3 3 3 4 5 5 5 4 5 5 5)
+    state_none
+        north     1
+        northeast 2
+        east      3
+        southeast 4
+        south     5
+        southwest 6
+        west      7
+        northwest 8		      
+    state_idle
+        north     1
+        northeast 2
+        east      3
+        southeast 4
+        south     5
+        southwest 6
+        west      7
+        northwest 8
+    state_moving
+        north      9
+        northeast 10
+        east      11
+        southeast 12
+        south     13
+        southwest 14
+        west      15
+        northwest 16
+
+: SpriteSheet heart
+	   size 8 8
+	   piece 0 "asset_sprite_sheets/heart_8x8.png"
+        consecutive 0 4 0 0
+
+# //////////////////////////////////////////////////////////////////////////
+#                                  Entities
+# //////////////////////////////////////////////////////////////////////////
+
+: Entity player
+	   type          player
+	   piece         player 0
+	   animation     player 
+	   mass          1.0
+	   speed         70
+#    speed 150
+	   boundary 0 Boundary_Pill(0 0 3 8)
+	   collision_response PLAYER
+
+# //////////////////////////////////////////////////////////////////////////
+#                                    Arts
+# //////////////////////////////////////////////////////////////////////////
+
+: Art art_test
+    path "asset_arts/test_art.png"
+	
+: Art art_test2
+	   path "asset_arts/test_art2.png"
+	
+: Art grass_platform_a
+	   path "asset_arts/grass_platform_a.png"
+		
+: Art grass_platform_b
+	   path "asset_arts/grass_platform_b.png"
+		
+: Art grass_platform_c
+	   path "asset_arts/grass_platform_c.png"
+	
+: Art grass_platform_d
+	   path "asset_arts/grass_platform_d.png"
+	
+: Art grass_platform_e
+	   path "asset_arts/grass_platform_e.png"
+
+# //////////////////////////////////////////////////////////////////////////
+#                                 Backgrounds
+# //////////////////////////////////////////////////////////////////////////
+
+: Background background_test_back
+	   path "asset_backgrounds/background_test_back.png"
+	
+: Background background_test_middle
+	   path "asset_backgrounds/background_test_middle.png"
+	
+: Background background_test_front
+	   path "asset_backgrounds/background_test_front.png"
+	
+# //////////////////////////////////////////////////////////////////////////
+#                                  Tilemaps
+# //////////////////////////////////////////////////////////////////////////
+
+: Tilemap grass_and_dirt
+    path "asset_tilemaps/grass_and_dirt_platform.png"
+    tile_size 16 16
+    dimensions 9 9
+    boundary 0 Boundary_Rect(0 0 16 16)
+    boundary 1 Boundary_Wedge( 0  0 -16  16)
+    boundary 2 Boundary_Wedge( 0  0  16  16)
+    boundary 3 Boundary_Wedge( 0  0 -16 -16)
+    boundary 4 Boundary_Wedge( 0  0  16 -16)
+    tile 0           "?_?_#_?_?" 4
+    tile 0           "XXX_#_?_?" 2
+    tile 0           "_XX_#_?_?" 2
+    tile 0           "XX__#_?_?" REVERSE_PREVIOUS
+    tile 0           "?_?_#X?_?" 6
+    tile 0           "?_?X#_?_?" REVERSE_PREVIOUS
+    tile 0           "?_?X#X?_?" 7
+    tile 0           "?_?_#_?X?" 2
+    tile 0           "_X__#_?_?" 2
+    tile 0           "_X__#_?X?" 4
+    tile 0           "?_?_#X?X?" 4
+    tile 0           "?_?X#_?X?" REVERSE_PREVIOUS
+    tile 0           "_X?_#X?_?" 4
+    tile 0           "?X_X#_?_?" REVERSE_PREVIOUS
+    tile 0           "XX?_#X?_?" 4
+    tile 0           "?XXX#_?_?" REVERSE_PREVIOUS
+    tile 0           "?_?X#X?X?" 9
+    tile 0           "_X?_#X?X?" ROTATE_PREVIOUS_270 
+    tile 0           "?X_X#_?X?" ROTATE_PREVIOUS_90
+    tile 0           "?X?X#X?_?" 5
+    tile 0           "?X?X#X?X?" 3
+    tile 0           "XX?_#X?X?" 2
+    tile 0           "?XXX#_?X?" REVERSE_PREVIOUS
+    tile 0           "XX__#_?X?" 2
+    tile 0           "_XX_#_?X?" REVERSE_PREVIOUS
+    tile 0           "XXX_#_?X?" 2
+    connector      "_X?X#????" 1
+    connector      "?X_?#X???" REVERSE_PREVIOUS
+    wedge_up_left 1    "?_?_#X?X?" 4
+    wedge_up_right 2   "?_?X#_?X?" REVERSE_PREVIOUS
+    wedge_down_left 3  "XX?_#X?_?" 2
+    wedge_down_right 4 "?XXX#_?_?" REVERSE_PREVIOUS
+    wedge_up_left 1    "?_?_#_?X?" 2
+    wedge_up_right 2   "?_?_#_?X?" REVERSE_PREVIOUS
+    wedge_down_left 3  "_X__#_?_?" REVERSE_AND_ROTATE_PREVIOUS_180
+    wedge_down_right 4 "_X__#_?_?" ROTATE_PREVIOUS_180
+    wedge_down_left 3  "XXX_#_???" 2
+    wedge_down_right 4 "XXX_#_???" REVERSE_PREVIOUS
+    wedge_down_left 3  "?_?_#X?_?" 2
+    wedge_down_right 4 "?_?X#_?_?" REVERSE_PREVIOUS
+# NOTE(Tyler): These are commented out because they have the same place "_XX_#_???" and "XX__#_???" as 
+# the one below them. And are essentially duplicate tiles(not visually of course)
+#    wedge_down_left 3  "_XX_#_???" ROTATE_PREVIOUS_270
+#    wedge_down_right 4 "XX__#_???" REVERSE_AND_ROTATE_PREVIOUS_90
+    wedge_up_left 1    "?_?_#X?_?" 2
+    wedge_up_right 2   "?_?X#_?_?" REVERSE_PREVIOUS
+    wedge_down_left 3  "_XX_#_???" ROTATE_PREVIOUS_270
+    wedge_down_right 4 "XX__#_???" REVERSE_AND_ROTATE_PREVIOUS_270
+
+    wedge_down_left 3  "_X?_#X?_?" 2
+    wedge_down_right 4 "?X_X#_?_?" REVERSE_PREVIOUS
+
+: Tilemap dirt
+    path "asset_tilemaps/dirt_platform.png"
+    tile_size 16 16
+    dimensions 7 6
+    boundary 0 Boundary_Rect(0 0 16 16)
+    boundary 1 Boundary_Wedge( 0  0 -16  16)
+    boundary 2 Boundary_Wedge( 0  0  16  16)
+    boundary 3 Boundary_Wedge( 0  0 -16 -16)
+    boundary 4 Boundary_Wedge( 0  0  16 -16)
+    tile 0           "?_?_#_?_?" 3
+    tile 0           "?X?_#_?_?" 2
+    tile 0           "?_?_#X?_?" 4
+    tile 0           "?_?X#_?_?" REVERSE_PREVIOUS
+    tile 0           "?_?X#X?_?" 4
+    tile 0           "?_?_#_?X?" 2
+    tile 0           "?X?_#_?X?" 3
+    tile 0           "?_?_#X?X?" 4
+    tile 0           "?_?X#_?X?" REVERSE_PREVIOUS
+    tile 0           "?X?_#X?_?" 4
+    tile 0           "?X?X#_?_?" REVERSE_PREVIOUS
+    tile 0           "?_?X#X?X?" 5
+    tile 0           "?X?_#X?X?" ROTATE_PREVIOUS_270 
+    tile 0           "?X?X#_?X?" ROTATE_PREVIOUS_90
+    tile 0           "?X?X#X?X?" 3
+    wedge_down_left 3  "?X?_#X?_?" 2
+    wedge_down_right 4 "?X?X#_?_?" REVERSE_PREVIOUS
+    wedge_up_left 1    "?_?_#X?X?" V_REVERSE_PREVIOUS
+    wedge_up_right 2   "?_?X#_?X?" HV_REVERSE_PREVIOUS
+    wedge_down_left 3  "?X?_#_???" 2
+    wedge_down_right 4 "?X?_#_???" REVERSE_PREVIOUS
+    wedge_up_left 1    "???_#_?X?" REVERSE_AND_ROTATE_PREVIOUS_180
+    wedge_up_right 2   "???_#_?X?" ROTATE_PREVIOUS_180
+    wedge_down_left 3  "?_?_#X?_?" REVERSE_AND_ROTATE_PREVIOUS_90
+    wedge_down_right 4 "?_?X#_?_?" ROTATE_PREVIOUS_270
+    wedge_up_left 1    "?_?_#X?_?" ROTATE_PREVIOUS_90
+    wedge_up_right 2   "?_?X#_?_?" REVERSE_AND_ROTATE_PREVIOUS_270 
+    tile 0             "?X?X#X?_?" 4
+
+: Tilemap cobblestone
+    path "asset_tilemaps/cobblestone_platform.png"
+    tile_size 16 16
+    dimensions 5 5
+    boundary 0 Boundary_Rect(0 0 16 16)
+    boundary 1 Boundary_Wedge( 0  0 -16  16)
+    boundary 2 Boundary_Wedge( 0  0  16  16)
+    boundary 3 Boundary_Wedge( 0  0 -16 -16)
+    boundary 4 Boundary_Wedge( 0  0  16 -16)
+    tile 0 "?_?_#_?_?" 2 
+    tile 0 "?_?_#X?_?" 2
+    tile 0 "?_?_#_?X?" ROTATE_PREVIOUS_90
+    tile 0 "?_?X#_?_?" ROTATE_PREVIOUS_180
+    tile 0 "?X?_#_?_?" ROTATE_PREVIOUS_270
+    tile 0 "?_?_#X?X?" 2
+   	tile 0 "?_?X#_?X?" ROTATE_PREVIOUS_90
+   	tile 0 "?X?X#_?_?" ROTATE_PREVIOUS_180
+   	tile 0 "?X?_#X?_?" ROTATE_PREVIOUS_270
+   	tile 0 "?_?X#X?_?" 3
+   	tile 0 "?X?_#_?X?" ROTATE_PREVIOUS_90
+   	tile 0 "?_?X#X?X?" 3
+   	tile 0 "?X?X#_?X?" ROTATE_PREVIOUS_90
+   	tile 0 "?X?X#X?_?" ROTATE_PREVIOUS_180
+   	tile 0 "?X?_#X?X?" ROTATE_PREVIOUS_270
+   	tile 0 "?X?X#X?X?" 5
+    connector "_X?X#????" 2
+   	connector "?X_?#X???" REVERSE_PREVIOUS
+   	connector "???X#?_X?" V_REVERSE_PREVIOUS
+   	connector "????#X?X_" HV_REVERSE_PREVIOUS
+   	# corners
+    wedge_up_right 2 "?_?X#_?X?" 2
+   	wedge_up_left 1  "?_?_#X?X?" REVERSE_PREVIOUS
+   	wedge_down_right 4 "?X?X#_?_?" V_REVERSE_PREVIOUS
+   	wedge_down_left 3 "?X?_#X?_?" HV_REVERSE_PREVIOUS
+   	# ends
+    wedge_up_right 2 "?_?X#_?_?" 2
+    wedge_up_left 1 "?_?_#X?_?" REVERSE_PREVIOUS
+    wedge_down_right 4 "?_?X#_?_?" V_REVERSE_PREVIOUS
+    wedge_down_left 3 "?_?_#X?_?" HV_REVERSE_PREVIOUS
+    # points
+    wedge_up_right 2 "?_?_#_?X?" REVERSE_AND_ROTATE_PREVIOUS_270
+    wedge_up_left 1 "?_?_#_?X?"  ROTATE_PREVIOUS_270
+    wedge_down_right 4 "?X?_#_?_?" ROTATE_PREVIOUS_90
+    wedge_down_left 3 "?X?_#_?_?" REVERSE_AND_ROTATE_PREVIOUS_90
+
+: Tilemap plant
+    path "asset_tilemaps/plant_platform.png"
+    tile_size 16 16
+    dimensions 9 7
+    boundary 0 Boundary_Rect(0 0 16 16)
+    boundary 1 Boundary_Wedge( 0  0 -16  16)
+    boundary 2 Boundary_Wedge( 0  0  16  16)
+    boundary 3 Boundary_Wedge( 0  0 -16 -16)
+    boundary 4 Boundary_Wedge( 0  0  16 -16)
+    # normal tiles
+    tile 0 "?_?_#_?_?" 3
+    tile 0 "XXX_#_?_?" 2
+    tile 0 "_XX_#_?_?" 2
+    tile 0 "XX__#_?_?" REVERSE_PREVIOUS
+    tile 0 "?_?_#X?_?" 4
+    tile 0 "?_?X#_?_?" REVERSE_PREVIOUS
+    tile 0 "?_?X#X?_?" 5
+    tile 0 "?_?_#_?X?" 2
+    tile 0 "_X__#_?_?" 2
+    tile 0 "?X?_#_?X?" 5
+    tile 0 "?_?_#X?X?" 2
+    tile 0 "?_?X#_?X?" REVERSE_PREVIOUS
+    tile 0 "_X?_#X?_?" 3
+    tile 0 "?X_X#_?_?" REVERSE_PREVIOUS
+    tile 0 "XX?_#X?_?" 2
+    tile 0 "?XXX#_?_?" REVERSE_PREVIOUS
+    tile 0 "?_?X#X?X?" 5
+    tile 0 "?X?X#_?X?" ROTATE_PREVIOUS_90
+    tile 0 "?X?_#X?X?" ROTATE_PREVIOUS_270
+    tile 0 "?X?X#X?_?" 3
+    tile 0 "?X?X#X?X?" 3
+    tile 0 "XX?_#X?X?" 2
+    tile 0 "?XXX#_?X?" REVERSE_PREVIOUS
+    tile 0 "XX?_#_?X?" 2
+    tile 0 "?XX_#_?X?" REVERSE_PREVIOUS
+    tile 0 "XXX_#_?X?" 2
+    tile 0 "XXX_#_?X?" REVERSE_PREVIOUS
+    # wedges
+    # corners
+    wedge_up_left 1 "?_?_#X?X?" 2
+    wedge_up_right 2 "?_?X#_?X?" REVERSE_PREVIOUS
+    wedge_down_left 3 "?X?_#X???" 2
+    wedge_down_right 4 "?X?X#_???" REVERSE_PREVIOUS
+    # points
+    wedge_up_left 1 "?_?_#_?X?" 2
+    wedge_up_right 2 "?_?_#_?X?" REVERSE_PREVIOUS
+    wedge_down_left 3 "?X?_#_?_?" 2
+    wedge_down_right 4 "?X?_#_?_?" REVERSE_PREVIOUS
+    wedge_down_left 3 "?_?_#X?_?" 2
+    wedge_down_right 4 "?_?X#_?_?" REVERSE_PREVIOUS
+    wedge_up_left 1 "?_?_#X?_?" 2
+    wedge_up_right 2 "?_?X#_?_?" REVERSE_PREVIOUS
+
+: Tilemap wood_plank
+    path "asset_tilemaps/wood_plank_platform.png"
+    tile_size 16 16
+    dimensions 5 6
+    boundary 0 Boundary_Rect(0 5 16 6)
+    boundary 1 Boundary_Quad(-8 -8  0  0   6 0  16 10 16 16)
+    boundary 2 Boundary_Quad(-8 -8  16 0  10 0   0 10  0 16)
+    boundary 3 Boundary_Wedge( 5  5 -6 -6)
+    boundary 4 Boundary_Wedge(-5  5  6 -6)
+    # normal tiles
+    tile 0 "???_#_?_?" 3
+    tile 0 "???_#X?_?" 1
+    tile 0 "???X#_?_?" 1
+    tile 0 "???X#X???" 3
+    tile 0 "???_#_?X?" 1
+    tile 0 "???_#X?X?" 1
+    tile 0 "???X#_?X?" 1
+    tile 0 "???_#X_X_" 1
+    tile 0 "???X#__X_" 1
+    # wedges
+    wedge_up_left 1    "?_?_#XX??" 1
+    wedge_up_right 2   "?_?X#_??X" 1
+    wedge_down_right 4 "???X#_?_?" 1
+    wedge_down_left 3  "???_#X?_?" 1
+    # normal tiles
+    tile 0 "???X#X_X_" 1
+    # more wedges
+    wedge_up_left 1    "?_?_#_X??" 1
+    wedge_up_right 2   "?_?_#_??X" 1
+    wedge_up_left 1    "?_X_#_?_?" 1
+    wedge_up_right 2   "X_?_#_?_?" 1
+    #ropes
+    art tile 0 "?_?_#_?X?" 1
+    art tile 0 "?X?_#_?X?" 1
+    art tile 0 "?_?_#X?X?" 1
+    art tile 0 "?X?_#X?X?" 1
+    art tile 0 "?_?X#_?X?" 1
+    art tile 0 "?X?X#_?X?" 1
+
+: Tilemap metal_gate_art
+    path "asset_tilemaps/metal_gate_art.png"
+    tile_size 16 32
+    dimensions 5 2
+    art tile 0 "?_?_#_???" 2
+    art tile 0 "?_?_#X???" 2
+    art tile 0 "?_?X#_???" 2
+    art tile 0 "?X??#X???" 1
+    art tile 0 "?X??#_???" 1
+    art tile 0 "?_?X#X???" 1
+    manual_tile art 0 1
+
+: Tilemap flower_box
+    path "asset_tilemaps/flower_box_platform.png"
+    tile_size 16 16
+    boundary 0 Boundary_Rect(0 0 16 16)
+    dimensions 4 2
+    tile 0 "???_#_???" 2
+    tile 0 "???_#X???" 4
+    tile 0 "???X#_???" REVERSE_PREVIOUS
+    tile 0 "???X#X???" 2
+
+: Tilemap snail
+    path "asset_tilemaps/snailsheet.png"
+    tile_size 16 16
+    dimensions 7 4
+    boundary 0 Boundary_Rect(0 0 16 16)
+    tile 0 "?_?_#_?_?" 1
+    # shell end
+    tile 0 "?_?_#X?_X" 1
+    tile 0 "?_?_#_?XX" ROTATE_PREVIOUS_90
+    # back ends
+    tile 0 "?X?_#_?_?" 1
+    tile 0 "?_?_#X?__" 1
+    # front ends
+    tile 0 "?_?X#_?_?" 1
+    tile 0 "?_?_#_?X_" ROTATE_PREVIOUS_270
+    # horizontal
+    tile 0 "?_?X#X?_?" 2
+    # vertical
+    tile 0 "?X?_#_?X_" ROTATE_PREVIOUS_270
+    tile 0 "?X?_#_?XX" 1
+    # edges
+    tile 0 "?X?X#X?_?" 2
+    tile 0 "?X?X#_?X?" ROTATE_PREVIOUS_270
+    tile 0 "?_?X#X?X?" 2
+    tile 0 "?X?_#X?X?" ROTATE_PREVIOUS_270
+    tile 0 "?X?X#_?XX" 1
+    tile 0 "?X?X#X?_X" 1
+    # corners
+    tile 0 "?X?X#_?_?" 2
+    tile 0 "?_?_#X?X_" 1
+    tile 0 "?X?_#X?__" 1
+    tile 0 "?_?_#X?XX" 1
+    tile 0 "?_?X#_?XX" REVERSE_PREVIOUS
+    tile 0 "?X?_#X?_?" V_REVERSE_PREVIOUS
+    # weird tiles
+    tile 0 "?_?X#X?X_" 1
+    tile 0 "?X?X#X?X_" 1
+    tile 0 "?X?_#X?X_" 1
+    tile 0 "?X?X#X?X?" 2
+    # top right corner
+    tile 0 "?_?X#_?X_" 1
+    # more weird tiles (I didn't order this very good)
+    tile 0 "?_?X#X?_X" 1
+    # tile 0 ?_?X#_?XX 1
+    connector "_X?X#????" 1
+    connector "?X_?#X???" REVERSE_PREVIOUS
+    connector "???X#?_X?" V_REVERSE_PREVIOUS
+
+: Tilemap cactus
+    path "asset_tilemaps/cactus.png"
+    tile_size 16 16
+    dimensions 5 3
+    boundary 0 Boundary_Rect(0 0 16 16)
+    tile 0 "?_?_#_???" 3
+    tile 0 "?_?_#X?_?" ROTATE_PREVIOUS_270
+    tile 0 "?_?X#_?_?" ROTATE_PREVIOUS_90
+    tile 0 "?X?_#_?_?" 1
+    tile 0 "?X?_#X?_?" 1
+    tile 0 "?X?X#_?_?" REVERSE_PREVIOUS
+    tile 0 "?_?_#X?X?" V_REVERSE_PREVIOUS
+    tile 0 "?_?X#_?X?" HV_REVERSE_PREVIOUS
+    tile 0 "?X?_#_?X?" 2
+    tile 0 "?_?X#X?_?" ROTATE_PREVIOUS_90
+    tile 0 "?X?_#X?X?" 1
+    tile 0 "?X?X#_?X?" REVERSE_PREVIOUS
+    tile 0 "?X?X#X?_?" ROTATE_PREVIOUS_270
+    tile 0 "?_?X#X?X?" ROTATE_PREVIOUS_90
+    tile 0 "?X?X#X?X?" 2
+
+# //////////////////////////////////////////////////////////////////////////
+#                                    Fonts
+# //////////////////////////////////////////////////////////////////////////
+
+: Font font_one
+    path "SJ_Font.png"
+    height 5
+    SPACE 2
+    EXCLAMATION 1
+    QUOTATION 3
+    POUND 5
+    APOSTROPHE 1
+    PARENTHESIS_LEFT 2
+    PARENTHESIS_RIGHT 2
+    ASTERISK 1
+    PLUS 3
+    COMMA 2
+    DASH 2
+    PERIOD 1
+    SLASH 3
+    ZERO 3
+    ONE 3
+    TWO 3
+    THREE 3
+    FOUR 3
+    FIVE 3
+    SIX 3
+    SEVEN 3
+    EIGHT 3
+    NINE 3
+    COLON 1
+    SEMICOLON 2
+    ANGLE_BRACKET_LEFT 3
+    EQUAL 3
+    ANGLE_BRACKET_RIGHT 3
+    QUESTION 3
+    A 3
+    B 3
+    C 3
+    D 3
+    E 3
+    F 3
+    G 3 
+    H 3
+    I 3
+    J 3
+    K 3
+    L 3
+    M 5
+    N 4
+    O 4
+    P 3
+    Q 4
+    R 3
+    S 3
+    T 3
+    U 3 
+    V 3
+    W 5
+    X 3
+    Y 3
+    Z 3
+    SQUARE_BRACKET_LEFT 2
+    BACKSLASH 3
+    SQUARE_BRACKET_RIGHT 2
+    CIRCUMFLEX 3
+    UNDERSCORE 4
+    CURLY_BRACKET_LEFT 3
+    BAR 1
+    CURLY_BRACKET_RIGHT 3
+    TILDE 4
+
+# //////////////////////////////////////////////////////////////////////////
+#                               Tic Tac Toe Stuff
+# //////////////////////////////////////////////////////////////////////////
+
+: Tilemap ttt_board_chalk
+    path "asset_tilemaps/ttt_board_chalk.png"
+    tile_size 16 16
+    dimensions 6 3
+    tile 0 "____#X_XX" 4
+    tile 0 "___X#_XX_" ROTATE_PREVIOUS_90
+    tile 0 "XX_X#____" ROTATE_PREVIOUS_180
+    tile 0 "_XX_#X___" ROTATE_PREVIOUS_270
+    tile 0 "___X#XXXX" 4
+    tile 0 "XX_X#_XX_" ROTATE_PREVIOUS_90
+    tile 0 "XXXX#X___" ROTATE_PREVIOUS_180
+    tile 0 "_XX_#X_XX" ROTATE_PREVIOUS_270
+    tile 0 "XXXX#XXXX" 7
+
+: SpriteSheet ttt_marks_chalk
+    size 16 16
+    piece 0 "asset_sprite_sheets/ttt_marks_chalk.png"
+       consecutive  0 6 8 0
+       consecutive  6 6 8 0

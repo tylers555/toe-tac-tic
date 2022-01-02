@@ -1,6 +1,6 @@
 version(1);
 
-project_name = "Snail Jumpy";
+project_name = "Toe Tac Tic";
 
 patterns = {
 "*.cpp",
@@ -9,7 +9,10 @@ patterns = {
 "*.vert",
 "*.frag",
 "*.glsl",
-"*.bat"
+"*.bat",
+"*.4coder",
+"*.txt",
+"*.sja"
 };
 
 load_paths = {

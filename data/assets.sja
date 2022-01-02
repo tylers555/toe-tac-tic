@@ -568,6 +568,7 @@
     piece 0 "asset_sprite_sheets/ttt_marks_chalk_16.png"
         consecutive  0 6 8 0
         consecutive  6 6 8 0
+        consecutive  0 6 8 0
 
 : Tilemap ttt_board_chalk_small
     path "asset_tilemaps/ttt_board_chalk_8.png"
@@ -589,3 +590,29 @@
         consecutive  12 2 8 0 # chalk cursor
         consecutive  0 1 8 0 #perfect x
         consecutive  6 1 8 0 #perfect o
+
+: Tilemap ttt_board_fancy
+    path "asset_tilemaps/ttt_board_fancy.png"
+    tile_size 16 16
+    dimensions 3 1
+    tile 0 "?_?_#X?X?" 1
+    tile 0 "?_?X#_?X?" ROTATE_PREVIOUS_90
+    tile 0 "?X?X#_?_?" ROTATE_PREVIOUS_180
+    tile 0 "?X?_#X?_?" ROTATE_PREVIOUS_270
+    tile 0 "?_?X#X?X?" 1
+    tile 0 "?X?X#_?X?" ROTATE_PREVIOUS_90
+    tile 0 "?X?X#X?_?" ROTATE_PREVIOUS_180
+    tile 0 "?X?_#X?X?" ROTATE_PREVIOUS_270
+    tile 0 "?X?X#X?X?" 1
+
+: SpriteSheet ttt_marks_fancy
+    size 16 16
+    piece 0 "asset_sprite_sheets/ttt_marks_fancy.png"
+        consecutive  0 1 8 0 #X
+        consecutive  1 1 8 0 #O
+        consecutive  6 1 8 0 #cursor
+        consecutive  0 1 8 0 #perfect x
+        consecutive  1 1 8 0 #perfect o
+        consecutive  2 1 8 0 #XO
+        consecutive  3 1 8 0 #dash
+        consecutive  7 1 8 0 #E

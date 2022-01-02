@@ -49,6 +49,7 @@ enum tic_tac_toe_state_flags_ {
  TTTStateFlag_HasAWinner       = (1 << 0),
  TTTStateFlag_ComputerHasMoved = (1 << 1),
  TTTStateFlag_KeyboardMode     = (1 << 2),
+ TTTStateFlag_PlayerHasMoved   = (1 << 3),
 };
 
 struct tic_tac_toe_state {
@@ -76,6 +77,9 @@ struct tic_tac_toe_state {
  v2 P = V2(10, 100);
  f32 Thickness = 1;
  f32 Padding = 1;
+ 
+ f32 CellSize;
+ f32 ZYAdvance;
  
  u32 OffenseWeight = 1;
  u32 DefenseWeight = 1;

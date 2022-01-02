@@ -75,10 +75,10 @@ TTT3DBoardCellP(ttt_board *Board, u32 I){
 }
 
 internal inline v2
-TTT3DBoardCellPV2(ttt_board *Board, v3s CellP, v2 P, f32 CellSize){
- v2 Result = P+CellSize*V2(CellP.XY);
- Result.X += CellSize*Board->N*CellP.Z;
- Result.Y -= CellSize*CellP.Z;
+TTT3DBoardCellPV2(tic_tac_toe_state *State, ttt_board *Board, v3s CellP, v2 P){
+ v2 Result = P+State->CellSize*V2(CellP.XY);
+ Result.X += State->CellSize*Board->N*CellP.Z;
+ Result.Y -= State->ZYAdvance*CellP.Z;
  return Result;
 }
 
@@ -216,7 +216,7 @@ TTTBoardPosition(tic_tac_toe_state *State, ttt_board *Board, v2 Point){
  u32 TotalZ = (Board->Type <= TTTBoard_2D) ? 1 : N;
  
  v2 P = State->P;
- f32 CellSize = State->Tilemap->TileSize.X;
+ f32 CellSize = State->CellSize;
  f32 Advance = CellSize*N;
  
  rect BoardRect = SizeRect(V2(0), V2(N*CellSize));
@@ -231,7 +231,7 @@ TTTBoardPosition(tic_tac_toe_state *State, ttt_board *Board, v2 Point){
    CellP.Z = Z;
    
    Result.IsValid = true;
-   Result.VisualP = TTT3DBoardCellPV2(Board, CellP, P, CellSize);
+   Result.VisualP = TTT3DBoardCellPV2(State, Board, CellP, P);
    Result.I = TTT3DBoardI(Board, CellP);
    Result.XY = CellP.XY;
    
@@ -239,7 +239,7 @@ TTTBoardPosition(tic_tac_toe_state *State, ttt_board *Board, v2 Point){
   }
   
   BoardP.X += Advance;
-  BoardP.Y -= CellSize;
+  BoardP.Y -= State->ZYAdvance;
  }
  
  return Result;
@@ -346,7 +346,7 @@ TTT2DBoardDoComputerMoveTraditional(tic_tac_toe_state *State, ttt_board *Board){
  
  v3s ComputerCellP = TTT3DBoardCellP(Board, Index);
  f32 CellSize = State->Tilemap->TileSize.X;
- State->TargetComputerP = TTT3DBoardCellPV2(Board, ComputerCellP, State->P, CellSize);
+ State->TargetComputerP = TTT3DBoardCellPV2(State, Board, ComputerCellP, State->P);
  if(!(State->Flags & TTTStateFlag_ComputerHasMoved)){
   State->ComputerP = State->TargetComputerP;
   State->Flags |= TTTStateFlag_ComputerHasMoved;
@@ -373,7 +373,7 @@ TTT3DBoardRender(tic_tac_toe_state *State, ttt_board *Board, v2 P, f32 Padding, 
  
  asset_tilemap *Tilemap = State->Tilemap;
  
- f32 CellSize = Tilemap->TileSize.X;
+ f32 CellSize = State->CellSize;
  f32 Advance = CellSize;
  f32 BoardSize = CellSize*N;
  
@@ -402,7 +402,7 @@ TTT3DBoardRender(tic_tac_toe_state *State, ttt_board *Board, v2 P, f32 Padding, 
   }
   
   P.X += BoardSize;
-  P.Y -= CellSize;
+  P.Y -= State->ZYAdvance;
   BoardData += N*N;
  }
 }
@@ -508,7 +508,7 @@ TTTBoardCountWeights(Name, for(u32 I=(Offset); I<(Offset)+N*(Advance); I+=(Advan
  
  v3s ComputerCellP = TTT3DBoardCellP(Board, Index);
  f32 CellSize = State->Tilemap->TileSize.X;
- State->TargetComputerP = TTT3DBoardCellPV2(Board, ComputerCellP, State->P, CellSize);
+ State->TargetComputerP = TTT3DBoardCellPV2(State, Board, ComputerCellP, State->P);
  if(!(State->Flags & TTTStateFlag_ComputerHasMoved)){
   State->ComputerP = State->TargetComputerP;
   State->Flags |= TTTStateFlag_ComputerHasMoved;
@@ -813,8 +813,10 @@ UpdateAndRenderTicTacToe(){
  GameRenderer.SetLightingConditions(WHITE, 1.0f);
  GameRenderer.SetCameraSettings(0.5f);
  
+ //RenderRect(SizeRect(V2(0), GameRenderer.ScreenToWorld(OSInput.WindowSize, ScaledItem(0))), 
+ //5.5f, MakeColor(0.55f, 0.51f, 0.51f), GameItem(0));
  RenderRect(SizeRect(V2(0), GameRenderer.ScreenToWorld(OSInput.WindowSize, ScaledItem(0))), 
-            5.5f, MakeColor(0.55f, 0.51f, 0.51f), GameItem(0));
+            5.5f, MakeColor(0.30f, 0.55f, 0.70f), GameItem(0));
  
  local_persist ttt_board Board = {};
  if(!TicTacToeState.Turn){
@@ -823,8 +825,8 @@ UpdateAndRenderTicTacToe(){
   Board = MakeTTT3DBoard(&PermanentStorageArena, N);
   TicTacToeState.WinningIndices = PushArray(&PermanentStorageArena, u32, N);
   TicTacToeState.Turn = TTTMark_Player;
-  TicTacToeState.Tilemap = AssetSystem.GetTilemap(String("ttt_board_chalk_small"));
-  TicTacToeState.Marks = AssetSystem.GetSpriteSheet(String("ttt_marks_chalk_small"));
+  TicTacToeState.Tilemap = AssetSystem.GetTilemap(String("ttt_board_fancy"));
+  TicTacToeState.Marks = AssetSystem.GetSpriteSheet(String("ttt_marks_fancy"));
   TicTacToeState.CursorP = MakeTTTPosition(TicTacToeState.P, V2S(0), 0);
   TicTacToeState.Cursor1P = TicTacToeState.P;
   TicTacToeState.Cursor2P = TicTacToeState.P;
@@ -833,6 +835,9 @@ UpdateAndRenderTicTacToe(){
   tilemap_tile *Tiles = PushArray(&TransientStorageArena, tilemap_tile, N*N);
   for(u32 I=0; I<N*N; I++) Tiles[I].Type = TileType_Tile;
   CalculateTilemapIndices(TicTacToeState.Tilemap, Tiles, &TicTacToeState.Data);
+  
+  TicTacToeState.CellSize = TicTacToeState.Tilemap->TileSize.X;
+  TicTacToeState.ZYAdvance = 0.5f*TicTacToeState.CellSize;
  }
  
  tic_tac_toe_state *State = &TicTacToeState;
@@ -840,7 +845,7 @@ UpdateAndRenderTicTacToe(){
  u32 N = Board.N;
  
  v2 P = State->P;
- f32 CellSize = State->Tilemap->TileSize.X;
+ f32 CellSize = State->CellSize;
  f32 Padding = State->Padding;
  f32 Advance = CellSize*N;
  
@@ -851,37 +856,37 @@ UpdateAndRenderTicTacToe(){
     State->CursorP.VisualP.X -= CellSize;
     State->CursorP.X--;
     State->CursorP.I--;
-    State->Flags |= TTTStateFlag_KeyboardMode;
+    State->Flags |= TTTStateFlag_KeyboardMode|TTTStateFlag_PlayerHasMoved;
    }
    if(OSInput.KeyRepeat(KeyCode_Right, KeyFlag_Any) && (State->CursorP.X < (s32)N-1)){
     State->CursorP.VisualP.X += CellSize;
     State->CursorP.X++;
     State->CursorP.I++;
-    State->Flags |= TTTStateFlag_KeyboardMode;
+    State->Flags |= TTTStateFlag_KeyboardMode|TTTStateFlag_PlayerHasMoved;
    }
    if(OSInput.KeyRepeat(KeyCode_Down, KeyFlag_Any) && (0 < State->CursorP.Y)){
     State->CursorP.VisualP.Y -= CellSize;
     State->CursorP.Y--;
     State->CursorP.I -= N;
-    State->Flags |= TTTStateFlag_KeyboardMode;
+    State->Flags |= TTTStateFlag_KeyboardMode|TTTStateFlag_PlayerHasMoved;
    }
    if(OSInput.KeyRepeat(KeyCode_Up, KeyFlag_Any) && (State->CursorP.Y < (s32)N-1)){
     State->CursorP.VisualP.Y += CellSize;
     State->CursorP.Y++;
     State->CursorP.I += N;
-    State->Flags |= TTTStateFlag_KeyboardMode;
+    State->Flags |= TTTStateFlag_KeyboardMode|TTTStateFlag_PlayerHasMoved;
    }
    if(OSInput.KeyRepeat('S', KeyFlag_Any) && ((s32)State->CursorP.I < (s32)Board.Size-(s32)(N*N))){
     State->CursorP.VisualP.X += Advance;
-    State->CursorP.VisualP.Y -= CellSize;
+    State->CursorP.VisualP.Y -= State->ZYAdvance;
     State->CursorP.I += N*N;
-    State->Flags |= TTTStateFlag_KeyboardMode;
+    State->Flags |= TTTStateFlag_KeyboardMode|TTTStateFlag_PlayerHasMoved;
    }
    if(OSInput.KeyRepeat('W', KeyFlag_Any) && (N*N <= State->CursorP.I)){
     State->CursorP.VisualP.X -= Advance;
-    State->CursorP.VisualP.Y += CellSize;
+    State->CursorP.VisualP.Y += State->ZYAdvance;
     State->CursorP.I -= N*N;
-    State->Flags |= TTTStateFlag_KeyboardMode;
+    State->Flags |= TTTStateFlag_KeyboardMode|TTTStateFlag_PlayerHasMoved;
    }
    
    ttt_position CellP = State->CursorP;
@@ -901,6 +906,7 @@ UpdateAndRenderTicTacToe(){
        OSInput.KeyJustDown(KeyCode_Space, KeyFlag_Any)){
      *Mark = TTTMark_Player;
      State->Turn = TTTMark_Computer;
+     State->Flags &= ~TTTStateFlag_PlayerHasMoved;
      PlayerJustAdded = true;
     }
    }
@@ -950,25 +956,28 @@ UpdateAndRenderTicTacToe(){
    for(u32 I=0; I<Board.Size; I++) Board.Board[I] = TTTMark_None;
   }
   
-  for(u32 I=0; I<N; I++){
-   Assert(Board.Type != TTTBoard_4D);
-   u32 Index = State->WinningIndices[I];
-   v3s CellP = TTT3DBoardCellP(&Board, Index);
-   v2 CellPV2 = TTT3DBoardCellPV2(&Board, CellP, P, CellSize);
-   GameRenderer.AddLight(CellPV2+V2(0.5f*CellSize), MakeColor(1.0f, 0.6f, 0.3f), 
-                         1.0f, CellSize, GameItem(0));
+  if(Winner != TTTMark_TOTAL){
+   for(u32 I=0; I<N; I++){
+    Assert(Board.Type != TTTBoard_4D);
+    u32 Index = State->WinningIndices[I];
+    v3s CellP = TTT3DBoardCellP(&Board, Index);
+    v2 CellPV2 = TTT3DBoardCellPV2(State, &Board, CellP, P);
+    GameRenderer.AddLight(CellPV2+V2(0.5f*CellSize), MakeColor(1.0f, 0.6f, 0.3f), 
+                          1.0f, CellSize, GameItem(0));
+   }
   }
  }
  
  if(!(State->Flags & TTTStateFlag_HasAWinner)){
   if(!Board.Board[State->CursorP.I] ||
-     (State->Flags & TTTStateFlag_KeyboardMode)){
+     ((State->Flags & TTTStateFlag_KeyboardMode) && 
+      (State->Flags & TTTStateFlag_PlayerHasMoved))){
    State->Cursor1P += State->Cursor1MoveFactor*(State->CursorP.VisualP-State->Cursor1P);
    State->Cursor2P += State->Cursor2MoveFactor*(State->CursorP.VisualP-State->Cursor2P);
    
    RenderSpriteSheetAnimationFrame(State->Marks, State->Cursor1P, 5.0f, 0, 3, 0);
-   GameRenderer.AddLight(State->Cursor2P+V2(0.5f*CellSize), MakeColor(0.5f, 1.0f, 0.5f), 
-                         0.4f, CellSize, GameItem(0));
+   GameRenderer.AddLight(State->Cursor2P+V2(0.5f*CellSize), MakeColor(0.3f, 1.0f, 0.3f), 
+                         0.7f, CellSize, GameItem(0));
   }
   
   if(State->Flags & TTTStateFlag_ComputerHasMoved){

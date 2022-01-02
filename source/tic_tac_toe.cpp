@@ -823,8 +823,8 @@ UpdateAndRenderTicTacToe(){
   Board = MakeTTT3DBoard(&PermanentStorageArena, N);
   TicTacToeState.WinningIndices = PushArray(&PermanentStorageArena, u32, N);
   TicTacToeState.Turn = TTTMark_Player;
-  TicTacToeState.Tilemap = AssetSystem.GetTilemap(String("ttt_board_chalk"));
-  TicTacToeState.Marks = AssetSystem.GetSpriteSheet(String("ttt_marks_chalk"));
+  TicTacToeState.Tilemap = AssetSystem.GetTilemap(String("ttt_board_chalk_small"));
+  TicTacToeState.Marks = AssetSystem.GetSpriteSheet(String("ttt_marks_chalk_small"));
   TicTacToeState.CursorP = MakeTTTPosition(TicTacToeState.P, V2S(0), 0);
   TicTacToeState.Cursor1P = TicTacToeState.P;
   TicTacToeState.Cursor2P = TicTacToeState.P;
@@ -847,13 +847,45 @@ UpdateAndRenderTicTacToe(){
  b8 PlayerJustAdded = false;
  if(!(State->Flags & TTTStateFlag_HasAWinner)){
   if(State->Turn == TTTMark_Player){
+   if(OSInput.KeyRepeat(KeyCode_Left, KeyFlag_Any) && (0 < State->CursorP.X)){
+    State->CursorP.VisualP.X -= CellSize;
+    State->CursorP.X--;
+    State->CursorP.I--;
+    State->Flags |= TTTStateFlag_KeyboardMode;
+   }
+   if(OSInput.KeyRepeat(KeyCode_Right, KeyFlag_Any) && (State->CursorP.X < (s32)N-1)){
+    State->CursorP.VisualP.X += CellSize;
+    State->CursorP.X++;
+    State->CursorP.I++;
+    State->Flags |= TTTStateFlag_KeyboardMode;
+   }
+   if(OSInput.KeyRepeat(KeyCode_Down, KeyFlag_Any) && (0 < State->CursorP.Y)){
+    State->CursorP.VisualP.Y -= CellSize;
+    State->CursorP.Y--;
+    State->CursorP.I -= N;
+    State->Flags |= TTTStateFlag_KeyboardMode;
+   }
+   if(OSInput.KeyRepeat(KeyCode_Up, KeyFlag_Any) && (State->CursorP.Y < (s32)N-1)){
+    State->CursorP.VisualP.Y += CellSize;
+    State->CursorP.Y++;
+    State->CursorP.I += N;
+    State->Flags |= TTTStateFlag_KeyboardMode;
+   }
+   if(OSInput.KeyRepeat('S', KeyFlag_Any) && ((s32)State->CursorP.I < (s32)Board.Size-(s32)(N*N))){
+    State->CursorP.VisualP.X += Advance;
+    State->CursorP.VisualP.Y -= CellSize;
+    State->CursorP.I += N*N;
+    State->Flags |= TTTStateFlag_KeyboardMode;
+   }
+   if(OSInput.KeyRepeat('W', KeyFlag_Any) && (N*N <= State->CursorP.I)){
+    State->CursorP.VisualP.X -= Advance;
+    State->CursorP.VisualP.Y += CellSize;
+    State->CursorP.I -= N*N;
+    State->Flags |= TTTStateFlag_KeyboardMode;
+   }
    
    ttt_position CellP = State->CursorP;
-   if(State->Flags & TTTStateFlag_KeyboardMode){
-    if(OSInput.KeyRepeat(KeyCode_Up)){
-     
-    }
-   }else{
+   if(!(State->Flags & TTTStateFlag_KeyboardMode)){
     v2 MouseP = GameRenderer.ScreenToWorld(OSInput.MouseP, ScaledItem(0));
     CellP = TTTBoardPosition(State, &Board, MouseP);
     if(CellP.IsValid && Board.Board[CellP.I]){
@@ -861,16 +893,15 @@ UpdateAndRenderTicTacToe(){
     }
    }
    
-   if(CellP.IsValid){
-    ttt_mark *Mark = &Board.Board[CellP.I];
-    
-    if(!*Mark){
-     State->CursorP = CellP;
-     if(OSInput.MouseJustDown(MouseButton_Left)){
-      *Mark = TTTMark_Player;
-      State->Turn = TTTMark_Computer;
-      PlayerJustAdded = true;
-     }
+   if(CellP.IsValid && !Board.Board[CellP.I]) State->CursorP = CellP;
+   ttt_mark *Mark = &Board.Board[State->CursorP.I];
+   
+   if(!*Mark){
+    if(OSInput.MouseJustDown(MouseButton_Left, KeyFlag_Any) ||
+       OSInput.KeyJustDown(KeyCode_Space, KeyFlag_Any)){
+     *Mark = TTTMark_Player;
+     State->Turn = TTTMark_Computer;
+     PlayerJustAdded = true;
     }
    }
    
@@ -911,7 +942,8 @@ UpdateAndRenderTicTacToe(){
  }
  if(Winner) {
   State->Flags |= TTTStateFlag_HasAWinner;
-  if(!PlayerJustAdded && OSInput.MouseJustDown(MouseButton_Left)){
+  if(!PlayerJustAdded && (OSInput.MouseJustDown(MouseButton_Left, KeyFlag_Any) ||
+                          OSInput.KeyJustDown(KeyCode_Space, KeyFlag_Any))){
    State->Flags &= ~TTTStateFlag_HasAWinner;
    State->Flags &= ~TTTStateFlag_ComputerHasMoved;
    State->Turn = TTTMark_Player;
@@ -929,11 +961,12 @@ UpdateAndRenderTicTacToe(){
  }
  
  if(!(State->Flags & TTTStateFlag_HasAWinner)){
-  if(!Board.Board[State->CursorP.I]){
+  if(!Board.Board[State->CursorP.I] ||
+     (State->Flags & TTTStateFlag_KeyboardMode)){
    State->Cursor1P += State->Cursor1MoveFactor*(State->CursorP.VisualP-State->Cursor1P);
    State->Cursor2P += State->Cursor2MoveFactor*(State->CursorP.VisualP-State->Cursor2P);
    
-   RenderSpriteSheetAnimationFrame(State->Marks, State->Cursor1P, 5.0f, 0, 1, State->CursorP.I);
+   RenderSpriteSheetAnimationFrame(State->Marks, State->Cursor1P, 5.0f, 0, 3, 0);
    GameRenderer.AddLight(State->Cursor2P+V2(0.5f*CellSize), MakeColor(0.5f, 1.0f, 0.5f), 
                          0.4f, CellSize, GameItem(0));
   }

@@ -550,7 +550,7 @@
 # //////////////////////////////////////////////////////////////////////////
 
 : Tilemap ttt_board_chalk
-    path "asset_tilemaps/ttt_board_chalk.png"
+    path "asset_tilemaps/ttt_board_chalk_16.png"
     tile_size 16 16
     dimensions 6 3
     tile 0 "____#X_XX" 4
@@ -565,6 +565,27 @@
 
 : SpriteSheet ttt_marks_chalk
     size 16 16
-    piece 0 "asset_sprite_sheets/ttt_marks_chalk.png"
-       consecutive  0 6 8 0
-       consecutive  6 6 8 0
+    piece 0 "asset_sprite_sheets/ttt_marks_chalk_16.png"
+        consecutive  0 6 8 0
+        consecutive  6 6 8 0
+
+: Tilemap ttt_board_chalk_small
+    path "asset_tilemaps/ttt_board_chalk_8.png"
+    tile_size 8 8
+    dimensions 8 3
+    tile 0 "?_?_#X???" 3
+    tile 0 "?_?X#X?X?" 3
+    tile 0 "???X#_?X?" 3
+    tile 0 "?X?_#X?X?" 3
+    tile 0 "?X?X#X?X?" 6
+    tile 0 "?X??#X?_?" 3
+    tile 0 "?X?X#_?_?" 3
+
+: SpriteSheet ttt_marks_chalk_small
+    size 8 8
+    piece 0 "asset_sprite_sheets/ttt_marks_chalk_8.png"
+        consecutive  1 5 8 0
+        consecutive  7 5 8 0 
+        consecutive  12 2 8 0 # chalk cursor
+        consecutive  0 1 8 0 #perfect x
+        consecutive  6 1 8 0 #perfect o

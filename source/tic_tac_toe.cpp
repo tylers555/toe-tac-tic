@@ -976,7 +976,7 @@ UpdateAndRenderTicTacToe(){
    State->Cursor2P += State->Cursor2MoveFactor*(State->CursorP.VisualP-State->Cursor2P);
    
    RenderSpriteSheetAnimationFrame(State->Marks, State->Cursor1P, 5.0f, 0, 3, 0);
-   GameRenderer.AddLight(State->Cursor2P+V2(0.5f*CellSize), MakeColor(0.3f, 1.0f, 0.3f), 
+   GameRenderer.AddLight(State->Cursor2P+V2(0.5f*CellSize), MakeColor(0.0f, 0.6f, 1.0f), 
                          0.7f, CellSize, GameItem(0));
   }
   

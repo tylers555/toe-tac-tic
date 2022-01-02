@@ -367,7 +367,7 @@ SelectorSelectItem(selector_context *Selector){
    }while(!Selector->ValidIndices[Result]);
   }else if(Scroll < -Range){
    do{
-    if(Result == 0) Result = Selector->MaxIndex;
+    if(Result == 0) Result = Selector->MaxIndex-1;
     else Result--;
    }while(!Selector->ValidIndices[Result]);
   }

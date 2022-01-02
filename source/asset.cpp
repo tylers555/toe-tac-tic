@@ -486,10 +486,10 @@ RenderTileAtIndex(asset_tilemap *Tilemap, v2 P, f32 Z, u32 Layer,
    T3 = V2(Max.X, Max.Y);
   }break;
   case TileTransform_ReverseAndRotate270: {
-   T0 = V2(Min.X, Min.Y);
-   T1 = V2(Max.X, Min.Y);
-   T2 = V2(Max.X, Max.Y);
-   T3 = V2(Min.X, Max.Y);
+   T0 = V2(Max.X, Max.Y);
+   T1 = V2(Min.X, Max.Y);
+   T2 = V2(Min.X, Min.Y);
+   T3 = V2(Max.X, Min.Y);
   }break;
   default: { INVALID_CODE_PATH; }break;
  }

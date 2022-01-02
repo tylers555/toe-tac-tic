@@ -600,9 +600,9 @@
     tile 0 "?X?X#_?_?" ROTATE_PREVIOUS_180
     tile 0 "?X?_#X?_?" ROTATE_PREVIOUS_270
     tile 0 "?_?X#X?X?" 1
-    tile 0 "?X?X#_?X?" ROTATE_PREVIOUS_90
-    tile 0 "?X?X#X?_?" ROTATE_PREVIOUS_180
-    tile 0 "?X?_#X?X?" ROTATE_PREVIOUS_270
+    tile 0 "?X?X#_?X?" REVERSE_AND_ROTATE_PREVIOUS_90
+    tile 0 "?X?X#X?_?" HV_REVERSE_PREVIOUS
+    tile 0 "?X?_#X?X?" REVERSE_AND_ROTATE_PREVIOUS_270
     tile 0 "?X?X#X?X?" 1
 
 : SpriteSheet ttt_marks_fancy

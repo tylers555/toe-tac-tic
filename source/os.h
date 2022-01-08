@@ -355,7 +355,7 @@ internal b8 PollEvents(os_event *Event);
 
 //~ Sound buffer
 struct os_sound_buffer {
-    
+    u32 SamplesPerSecond;
 };
 
 //~ Files

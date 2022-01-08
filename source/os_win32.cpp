@@ -22,6 +22,8 @@ global WINDOWPLACEMENT GlobalWindowPlacement = {sizeof(GlobalWindowPlacement)};
 global IAudioClient *AudioClient;
 global IAudioRenderClient *AudioRenderClient;
 
+global sound_data SoundEffect;
+
 internal void
 ToggleFullscreen(HWND Window){
     // NOTE(Tyler): Raymond Chen fullscreen code:
@@ -294,8 +296,9 @@ Win32InitAudio(s32 SamplesPerSecond, s32 BufferSizeInSamples){
 }
 
 internal void 
-Win32WriteAudio(){
+Win32WriteAudio(os_sound_buffer *SoundBuffer){
     HRESULT Error;
+    // TODO(Tyler): Move this somewhere else
     u32 AudioSampleCount;
     if(FAILED(Error = AudioClient->GetBufferSize(&AudioSampleCount))) Assert(0);
     
@@ -303,7 +306,7 @@ Win32WriteAudio(){
     if(FAILED(Error = AudioClient->GetCurrentPadding(&PaddingSamplesCount))) Assert(0);
     
     u32 SamplesAvailable = AudioSampleCount - PaddingSamplesCount;
-    s32 SamplesPerFrameS32 = 48000 / 60;
+    s32 SamplesPerFrameS32 = (s32)(48000 * OSInput.dTime);
     //s32 SamplesToWrite = (s32)SamplesAvailable;
     s32 LatencySampleCount = 2*SamplesPerFrameS32;
     s32 SamplesToWrite = 0;
@@ -317,16 +320,13 @@ Win32WriteAudio(){
         s16 *DestSample = (s16 *)BufferData;
         
         local_persist u32 TotalSampleCounter = 0;
-        local_persist f32 tSine = 0;
-        s32 Period = 48000 / (s16)(150.0f*Sin(Counter) + 300.0f);
-        s16 Volume = 10000;
         
         for(s32 I=0; I < SamplesToWrite; I++){
-            f32 SinValue = Sin(tSine);
-            s16 Sample = (s16)(10000*SinValue);
-            *DestSample = Sample; DestSample++;
-            *DestSample = Sample; DestSample++;
-            tSine += 2.0f*PI*1.0f / (f32)Period;
+            if(TotalSampleCounter < SoundEffect.SampleCount){
+                s16 *InputSample = SoundEffect.Samples + 2*TotalSampleCounter;
+                *DestSample++ = *InputSample++;
+                *DestSample++ = *InputSample++;
+            }
             TotalSampleCounter++;
         }
         
@@ -348,7 +348,7 @@ WinMain(HINSTANCE Instance,
     OSInput.ConsoleOutFile = (os_file *)GetStdHandle(STD_OUTPUT_HANDLE);
     OSInput.ConsoleErrorFile = (os_file *)GetStdHandle(STD_ERROR_HANDLE);
     
-    
+    //~ 
     WNDCLASS WindowClass = {};
     
     WindowClass.style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
@@ -380,6 +380,8 @@ WinMain(HINSTANCE Instance,
             
             InitializeGame();
             
+            SoundEffect = LoadWaveFile(&PermanentStorageArena, "music_test.wav");
+            
             //~
             LARGE_INTEGER PerformanceCounterFrequencyResult;
             QueryPerformanceFrequency(&PerformanceCounterFrequencyResult);
@@ -400,7 +402,8 @@ WinMain(HINSTANCE Instance,
                 OSInput.MouseP = Win32GetMouseP();
                 GameUpdateAndRender();
                 
-                Win32WriteAudio();
+                os_sound_buffer SoundBuffer = {};
+                Win32WriteAudio(&SoundBuffer);
                 
                 f32 SecondsElapsed = Win32SecondsElapsed(LastCounter, Win32GetWallClock());
                 if(SecondsElapsed < TARGET_SECONDS_PER_FRAME)

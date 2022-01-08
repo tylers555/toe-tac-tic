@@ -76,23 +76,23 @@ typedef double f64;
 
 internal constexpr b8
 CompareStrings(const char *A, const char *B){
- b8 Result = true;
- while(*A || *B){
-  if(*A++ != *B++){
-   Result = false;
-  }
- }
- 
- return(Result);
+    b8 Result = true;
+    while(*A || *B){
+        if(*A++ != *B++){
+            Result = false;
+        }
+    }
+    
+    return(Result);
 }
 
 internal constexpr u64
 HashString(const char *String){
- u64 Result = 71984823;
- while(char Char = *String++) {
-  Result += (Char << 5) + Char;
- }
- return(Result);
+    u64 Result = 71984823;
+    while(char Char = *String++) {
+        Result += (Char << 5) + Char;
+    }
+    return(Result);
 }
 
 

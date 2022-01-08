@@ -28,87 +28,87 @@ global_constant char *STARTUP_LEVEL = "Debug";
 
 //~ TODO(Tyler): Things that need a better place to go
 enum entity_state {
- State_None,
- State_Idle,
- State_Moving,
- State_Jumping,
- State_Falling,
- State_Turning,
- State_Retreating,
- State_Stunned,
- State_Returning,
- 
- State_TOTAL,
+    State_None,
+    State_Idle,
+    State_Moving,
+    State_Jumping,
+    State_Falling,
+    State_Turning,
+    State_Retreating,
+    State_Stunned,
+    State_Returning,
+    
+    State_TOTAL,
 };
 
 enum direction {
- Direction_None,
- 
- Direction_North,
- Direction_NorthEast,
- Direction_East,
- Direction_SouthEast,
- Direction_South,
- Direction_SouthWest,
- Direction_West,
- Direction_NorthWest,
- 
- Direction_TOTAL,
- 
- Direction_Up    = Direction_North,
- Direction_Down  = Direction_South,
- Direction_Left  = Direction_West,
- Direction_Right = Direction_East,
+    Direction_None,
+    
+    Direction_North,
+    Direction_NorthEast,
+    Direction_East,
+    Direction_SouthEast,
+    Direction_South,
+    Direction_SouthWest,
+    Direction_West,
+    Direction_NorthWest,
+    
+    Direction_TOTAL,
+    
+    Direction_Up    = Direction_North,
+    Direction_Down  = Direction_South,
+    Direction_Left  = Direction_West,
+    Direction_Right = Direction_East,
 };
 
 typedef u32 entity_flags;
 enum _entity_flags {
- EntityFlag_None                 = 0,
- EntityFlag_CanBeStunned         = (1 << 0),
- EntityFlag_NotAffectedByGravity = (1 << 1),
- EntityFlag_FlipBoundaries       = (1 << 2),
+    EntityFlag_None                 = 0,
+    EntityFlag_CanBeStunned         = (1 << 0),
+    EntityFlag_NotAffectedByGravity = (1 << 1),
+    EntityFlag_FlipBoundaries       = (1 << 2),
 };
 
 //~ Enum to string tables
 local_constant char *TRUE_FALSE_TABLE[2] = {
- "false",
- "true",
+    "false",
+    "true",
 };
 
 local_constant char *ENTITY_STATE_TABLE[State_TOTAL] = {
- "State none",
- "State idle",
- "State moving",
- "State jumping",
- "State falling",
- "State turning",
- "State retreating",
- "State stunned",
- "State returning",
+    "State none",
+    "State idle",
+    "State moving",
+    "State jumping",
+    "State falling",
+    "State turning",
+    "State retreating",
+    "State stunned",
+    "State returning",
 };
 
 local_constant char *DIRECTION_TABLE[Direction_TOTAL] = {
- "Direction none",
- "Direction north",
- "Direction northeast",
- "Direction east",
- "Direction southeast",
- "Direction south",
- "Direction southwest",
- "Direction west",
- "Direction northwest",
+    "Direction none",
+    "Direction north",
+    "Direction northeast",
+    "Direction east",
+    "Direction southeast",
+    "Direction south",
+    "Direction southwest",
+    "Direction west",
+    "Direction northwest",
 };
 
 local_constant char *SIMPLE_DIRECTION_TABLE[Direction_TOTAL] = {
- "Direction none",
- "Direction up",
- "Direction up right",
- "Direction right",
- "Direction down right",
- "Direction down",
- "Direction down left",
- "Direction left",
- "Direction up left",
+    "Direction none",
+    "Direction up",
+    "Direction up right",
+    "Direction right",
+    "Direction down right",
+    "Direction down",
+    "Direction down left",
+    "Direction left",
+    "Direction up left",
 };
 
 //~ Includes
@@ -135,16 +135,16 @@ local_constant char *SIMPLE_DIRECTION_TABLE[Direction_TOTAL] = {
 
 //~ Miscallaneous
 enum game_mode {
- GameMode_None,
- GameMode_Debug,
- GameMode_WorldEditor,
- GameMode_MainGame,
- GameMode_TicTacToe,
+    GameMode_None,
+    GameMode_Debug,
+    GameMode_WorldEditor,
+    GameMode_MainGame,
+    GameMode_TicTacToe,
 };
 struct state_change_data {
- b8 DidChange;
- game_mode NewMode;
- const char *NewLevel;
+    b8 DidChange;
+    game_mode NewMode;
+    const char *NewLevel;
 };
 
 

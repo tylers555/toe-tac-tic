@@ -14,7 +14,7 @@
 global_constant u32 DEFAULT_BUFFER_SIZE = 512;
 
 global_constant f32 MAXIMUM_SECONDS_PER_FRAME = (1.0f / 20.0f);
-global_constant f32 TARGET_SECONDS_PER_FRAME = (1.0f / 60.0f);
+global_constant f32 MINIMUM_SECONDS_PER_FRAME = (1.0f / 90.0f);
 
 global_constant u32 PHYSICS_ITERATIONS_PER_OBJECT = 4;
 global_constant f32 WALKABLE_STEEPNESS    = 0.1f;

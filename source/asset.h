@@ -231,6 +231,17 @@ struct asset_tilemap {
     collision_boundary *Boundaries;
 };
 
+//~ Sound effects
+struct sound_data {
+    s16 *Samples;
+    u16 ChannelCount;
+    u32 SampleCount;
+};
+
+struct asset_sound_effect {
+    sound_data Sound;
+};
+
 //~ Asset system
 typedef dynamic_array<asset_tilemap_tile_data> tile_array;
 struct asset_system {
@@ -243,6 +254,7 @@ struct asset_system {
     hash_table<string, asset_art>          Arts;
     hash_table<string, asset_art>          Backgrounds;
     hash_table<string, asset_tilemap>      Tilemaps;
+    hash_table<string, asset_sound_effect> SoundEffects;
     
     asset_sprite_sheet DummySpriteSheet;
     asset_art          DummyArt;
@@ -258,6 +270,9 @@ struct asset_system {
     asset_art *GetBackground(string Name);
     
     asset_tilemap *GetTilemap(string Name);
+    
+    asset_sound_effect *GetSoundEffect(string Name);
+    
     
     //~ Logging 
     const char *CurrentCommand;
@@ -295,6 +310,7 @@ struct asset_system {
     
     void LoadAssetFile(const char *Path);
     b8 ProcessCommand();
+    b8 ProcessIgnore();
     b8 ProcessSpriteSheet();
     b8 ProcessSpriteSheetStates(const char *StateName, asset_sprite_sheet *Sheet);
     b8 ProcessAnimation();
@@ -304,7 +320,7 @@ struct asset_system {
     b8 ProcessTilemapTile(tile_array *Tiles, const char *TileType, u32 *TileOffset);
     b8 ProcessTilemap();
     b8 ProcessFont();
-    b8 ProcessIgnore();
+    b8 ProcessSoundEffect();
 };
 
 #endif //SNAIL_JUMPY_ASSET_H

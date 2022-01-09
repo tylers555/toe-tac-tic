@@ -11,7 +11,6 @@ MakeTileID(tile_type Type, tile_flags Flags, u16 ID){
 
 void
 asset_system::InitializeLoader(memory_arena *Arena){
-    
     StateTable = PushHashTable<const char *, entity_state>(Arena, State_TOTAL);
     InsertIntoHashTable(&StateTable, "state_none",       State_None);
     InsertIntoHashTable(&StateTable, "state_idle",       State_Idle);
@@ -401,6 +400,7 @@ asset_system::ProcessCommand(){
     
     const char *String = Expect(Identifier);
     
+    IfCommand(Ignore);
     IfCommand(SpriteSheet);
     IfCommand(Animation);
     IfCommand(Entity);
@@ -408,7 +408,7 @@ asset_system::ProcessCommand(){
     IfCommand(Background);
     IfCommand(Tilemap);
     IfCommand(Font);
-    IfCommand(Ignore);
+    IfCommand(SoundEffect);
     
     LogMessage("(Line: %u) '%s' isn't a valid command!", Reader.Line, String);
     return(false);
@@ -1195,4 +1195,34 @@ asset_system::ProcessTilemap(){
 b8
 asset_system::ProcessFont(){
     return(ProcessIgnore());
+}
+
+//~ Sound effects
+
+b8
+asset_system::ProcessSoundEffect(){
+    b8 Result = false;
+    
+    const char *Name = Expect(Identifier);
+    asset_sound_effect *Sound = Strings.GetInHashTablePtr(&SoundEffects, Name);
+    *Sound = {};
+    
+    while(true){
+        file_token Token = Reader.PeekToken();
+        HandleToken(Token);
+        const char *String = Expect(Identifier);
+        
+        if(DoAttribute(String, "path")){
+            const char *Path = Expect(String);
+            sound_data Data = LoadWavFile(&Memory, Path);
+            if(!Data.Samples){
+                LogError("'%s' isn't a valid path to a wav file!", Path);
+            }
+            Sound->Sound = Data;
+            
+        }else{ LogInvalidAttribute(String); return(false); }
+    }
+    
+    
+    return true;
 }

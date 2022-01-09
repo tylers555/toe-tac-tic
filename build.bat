@@ -5,7 +5,7 @@ set COMPILE_OPTIONS= /FC /W4 /WX /nologo /Zi /std:c++latest /GR- /Od /EHa- /MT /
 set LINK_OPTIONS= /incremental:no
 set INCLUDE_PATHS=
 set LIBRARY_PATHS=
-set LIBRARIES= User32.lib Gdi32.lib Opengl32.lib Comdlg32.lib Ole32.lib
+set LIBRARIES= User32.lib Gdi32.lib Opengl32.lib Comdlg32.lib Ole32.lib Winmm.lib
 
 pushd "build"
 

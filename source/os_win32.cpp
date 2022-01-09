@@ -22,8 +22,6 @@ global WINDOWPLACEMENT GlobalWindowPlacement = {sizeof(GlobalWindowPlacement)};
 global IAudioClient *AudioClient;
 global IAudioRenderClient *AudioRenderClient;
 
-global sound_data SoundEffect;
-
 internal void
 ToggleFullscreen(HWND Window){
     // NOTE(Tyler): Raymond Chen fullscreen code:
@@ -308,7 +306,7 @@ Win32WriteAudio(os_sound_buffer *SoundBuffer){
     u32 SamplesAvailable = AudioSampleCount - PaddingSamplesCount;
     s32 SamplesPerFrameS32 = (s32)(48000 * OSInput.dTime);
     //s32 SamplesToWrite = (s32)SamplesAvailable;
-    s32 LatencySampleCount = 2*SamplesPerFrameS32;
+    s32 LatencySampleCount = 10*SamplesPerFrameS32;
     s32 SamplesToWrite = 0;
     SamplesToWrite = SamplesAvailable;
     if(SamplesToWrite > LatencySampleCount){
@@ -320,12 +318,21 @@ Win32WriteAudio(os_sound_buffer *SoundBuffer){
         s16 *DestSample = (s16 *)BufferData;
         
         local_persist u32 TotalSampleCounter = 0;
+        asset_sound_effect *Asset = AssetSystem.GetSoundEffect(String("test"));
+        sound_data SoundEffect = Asset->Sound;
         
         for(s32 I=0; I < SamplesToWrite; I++){
             if(TotalSampleCounter < SoundEffect.SampleCount){
-                s16 *InputSample = SoundEffect.Samples + 2*TotalSampleCounter;
-                *DestSample++ = *InputSample++;
-                *DestSample++ = *InputSample++;
+                s16 *InputSample = SoundEffect.Samples + SoundEffect.ChannelCount*TotalSampleCounter;
+                if(SoundEffect.ChannelCount == 1){
+                    *DestSample++ = *InputSample;
+                    *DestSample++ = *InputSample;
+                }else{
+                    *DestSample++ = *InputSample++;
+                    *DestSample++ = *InputSample++;
+                }
+            }else{
+                int A = 4;
             }
             TotalSampleCounter++;
         }
@@ -380,15 +387,32 @@ WinMain(HINSTANCE Instance,
             
             InitializeGame();
             
-            SoundEffect = LoadWaveFile(&PermanentStorageArena, "music_test.wav");
+            UINT DesiredSchedulerMS = 1;
+            b8 SleepIsGranular = (timeBeginPeriod(DesiredSchedulerMS) == TIMERR_NOERROR);
             
             //~
+            HDC DeviceContext = GetDC(MainWindow);
+            
             LARGE_INTEGER PerformanceCounterFrequencyResult;
             QueryPerformanceFrequency(&PerformanceCounterFrequencyResult);
             GlobalPerfCounterFrequency = (f32)PerformanceCounterFrequencyResult.QuadPart;
             
+            int MonitorRefreshHz = 60;
+            int RefreshRate = GetDeviceCaps(DeviceContext, VREFRESH);
+            if(RefreshRate > 1)
+            {
+                MonitorRefreshHz = RefreshRate;
+            }
+            f32 GameUpdateHz = (f32)(MonitorRefreshHz);
+            
             LARGE_INTEGER LastCounter = Win32GetWallClock();
-            OSInput.dTime = TARGET_SECONDS_PER_FRAME;
+            f32 TargetSecondsPerFrame = 1.0f / GameUpdateHz;
+            if(TargetSecondsPerFrame < MINIMUM_SECONDS_PER_FRAME){
+                TargetSecondsPerFrame = MINIMUM_SECONDS_PER_FRAME;
+            }else if(TargetSecondsPerFrame > MAXIMUM_SECONDS_PER_FRAME){
+                TargetSecondsPerFrame = MAXIMUM_SECONDS_PER_FRAME;
+            }
+            OSInput.dTime = TargetSecondsPerFrame;
             
             Running = true;
             while(Running){
@@ -405,16 +429,25 @@ WinMain(HINSTANCE Instance,
                 os_sound_buffer SoundBuffer = {};
                 Win32WriteAudio(&SoundBuffer);
                 
+                LastCounter = Win32GetWallClock();
+                
                 f32 SecondsElapsed = Win32SecondsElapsed(LastCounter, Win32GetWallClock());
-                if(SecondsElapsed < TARGET_SECONDS_PER_FRAME)
+                if(SecondsElapsed < TargetSecondsPerFrame)
                 {
-                    while(SecondsElapsed < TARGET_SECONDS_PER_FRAME)
+                    if(SleepIsGranular){
+                        DWORD SleepMS = (DWORD)(1000.0f * (TargetSecondsPerFrame-SecondsElapsed));
+                        if(SleepMS > 0){
+                            Sleep(SleepMS);
+                        }
+                    }
+                    
+                    SecondsElapsed = Win32SecondsElapsed(LastCounter, Win32GetWallClock());
+                    
+                    while(SecondsElapsed < TargetSecondsPerFrame)
                     {
-                        DWORD SleepMS = (DWORD)(1000.0f * (TARGET_SECONDS_PER_FRAME-SecondsElapsed));
-                        Sleep(SleepMS);
                         SecondsElapsed = Win32SecondsElapsed(LastCounter, Win32GetWallClock());
                     }
-                    OSInput.dTime = TARGET_SECONDS_PER_FRAME;
+                    OSInput.dTime = TargetSecondsPerFrame;
                 }
                 else
                 {
@@ -425,13 +458,9 @@ WinMain(HINSTANCE Instance,
                     }
                 }
                 
-                LastCounter = Win32GetWallClock();
-                
-                HDC DeviceContext = GetDC(MainWindow);
-                RECT WindowRect;
-                GetClientRect(MainWindow, &WindowRect);
                 SwapBuffers(DeviceContext);
-                ReleaseDC(MainWindow, DeviceContext);
+                
+                
             }
         }
         else

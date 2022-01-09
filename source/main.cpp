@@ -58,6 +58,7 @@ String(const char *S){
 #include "render.cpp"
 #include "stream.cpp"
 #include "file_processing.cpp"
+#include "wav.cpp"
 #include "ui.cpp"
 #include "ui_window.cpp"
 #include "physics.cpp"
@@ -66,7 +67,6 @@ String(const char *S){
 #include "entity.cpp"
 #include "debug_ui.cpp"
 #include "world.cpp"
-#include "wave.cpp"
 
 #include "debug_game_mode.cpp"
 #include "world_editor.cpp"

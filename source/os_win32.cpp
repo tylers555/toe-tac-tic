@@ -296,49 +296,18 @@ Win32InitAudio(s32 SamplesPerSecond, s32 BufferSizeInSamples){
 internal void 
 Win32WriteAudio(os_sound_buffer *SoundBuffer){
     HRESULT Error;
-    // TODO(Tyler): Move this somewhere else
-    u32 AudioSampleCount;
-    if(FAILED(Error = AudioClient->GetBufferSize(&AudioSampleCount))) Assert(0);
-    
-    u32 PaddingSamplesCount;
-    if(FAILED(Error = AudioClient->GetCurrentPadding(&PaddingSamplesCount))) Assert(0);
-    
-    u32 SamplesAvailable = AudioSampleCount - PaddingSamplesCount;
-    s32 SamplesPerFrameS32 = (s32)(48000 * OSInput.dTime);
-    //s32 SamplesToWrite = (s32)SamplesAvailable;
-    s32 LatencySampleCount = 10*SamplesPerFrameS32;
-    s32 SamplesToWrite = 0;
-    SamplesToWrite = SamplesAvailable;
-    if(SamplesToWrite > LatencySampleCount){
-        SamplesToWrite = LatencySampleCount;
-    }
     
     u8 *BufferData;
-    if(SUCCEEDED(Error = AudioRenderClient->GetBuffer(SamplesToWrite, &BufferData))){
+    if(SUCCEEDED(Error = AudioRenderClient->GetBuffer(SoundBuffer->SamplesToWrite, &BufferData))){
+        
         s16 *DestSample = (s16 *)BufferData;
-        
-        local_persist u32 TotalSampleCounter = 0;
-        asset_sound_effect *Asset = AssetSystem.GetSoundEffect(String("test"));
-        sound_data SoundEffect = Asset->Sound;
-        
-        for(s32 I=0; I < SamplesToWrite; I++){
-            if(TotalSampleCounter < SoundEffect.SampleCount){
-                s16 *InputSample = SoundEffect.Samples + SoundEffect.ChannelCount*TotalSampleCounter;
-                if(SoundEffect.ChannelCount == 1){
-                    *DestSample++ = *InputSample;
-                    *DestSample++ = *InputSample;
-                }else{
-                    *DestSample++ = *InputSample++;
-                    *DestSample++ = *InputSample++;
-                }
-            }else{
-                int A = 4;
-            }
-            TotalSampleCounter++;
+        s16 *InputSample = SoundBuffer->Samples;
+        for(u32 I=0; I < SoundBuffer->SamplesToWrite; I++){
+            *DestSample++ = *InputSample++;
+            *DestSample++ = *InputSample++;
         }
         
-        
-        AudioRenderClient->ReleaseBuffer(SamplesToWrite, 0);
+        AudioRenderClient->ReleaseBuffer(SoundBuffer->SamplesToWrite, 0);
     }
 }
 
@@ -381,17 +350,26 @@ WinMain(HINSTANCE Instance,
             ToggleFullscreen(MainWindow);
             wglSwapIntervalEXT(1);
             
+            //~ Audio
             s32 SamplesPerSecond = 48000;
             Win32InitAudio(SamplesPerSecond, SamplesPerSecond);
             AudioClient->Start();
             
+            u32 AudioSampleCount;
+            HRESULT Error;
+            if(FAILED(Error = AudioClient->GetBufferSize(&AudioSampleCount))) Assert(0);
+            
+            OSSoundBuffer.SampleRate = SamplesPerSecond;
+            OSSoundBuffer.Samples = (s16 *)AllocateVirtualMemory(sizeof(s16)*2*AudioSampleCount);
+            
+            //~ 
             InitializeGame();
+            HDC DeviceContext = GetDC(MainWindow);
+            
+            //~ Timing
             
             UINT DesiredSchedulerMS = 1;
             b8 SleepIsGranular = (timeBeginPeriod(DesiredSchedulerMS) == TIMERR_NOERROR);
-            
-            //~
-            HDC DeviceContext = GetDC(MainWindow);
             
             LARGE_INTEGER PerformanceCounterFrequencyResult;
             QueryPerformanceFrequency(&PerformanceCounterFrequencyResult);
@@ -414,6 +392,7 @@ WinMain(HINSTANCE Instance,
             }
             OSInput.dTime = TargetSecondsPerFrame;
             
+            //~ Main loop
             Running = true;
             while(Running){
                 RECT ClientRect;
@@ -424,13 +403,31 @@ WinMain(HINSTANCE Instance,
                 };
                 OSInput.LastMouseP = OSInput.MouseP;
                 OSInput.MouseP = Win32GetMouseP();
+                
+                
+                u32 PaddingSamplesCount;
+                if(FAILED(Error = AudioClient->GetCurrentPadding(&PaddingSamplesCount))) Assert(0);
+                
+                u32 SamplesAvailable = AudioSampleCount - PaddingSamplesCount;
+                s32 SamplesPerFrameS32 = (s32)(48000 * OSInput.dTime);
+                //s32 SamplesToWrite = (s32)SamplesAvailable;
+                s32 LatencySampleCount = 1*SamplesPerFrameS32;
+                s32 SamplesToWrite = 0;
+                SamplesToWrite = SamplesAvailable;
+                if(SamplesToWrite > LatencySampleCount){
+                    SamplesToWrite = LatencySampleCount;
+                }
+                OSSoundBuffer.SamplesToWrite = SamplesToWrite;
+                ZeroMemory(OSSoundBuffer.Samples, OSSoundBuffer.SamplesToWrite*2*sizeof(*OSSoundBuffer.Samples));
+                
                 GameUpdateAndRender();
                 
-                os_sound_buffer SoundBuffer = {};
-                Win32WriteAudio(&SoundBuffer);
+                Win32WriteAudio(&OSSoundBuffer);
                 
                 LastCounter = Win32GetWallClock();
                 
+                //~ Timing
+#if 0
                 f32 SecondsElapsed = Win32SecondsElapsed(LastCounter, Win32GetWallClock());
                 if(SecondsElapsed < TargetSecondsPerFrame)
                 {
@@ -457,10 +454,9 @@ WinMain(HINSTANCE Instance,
                         OSInput.dTime = MAXIMUM_SECONDS_PER_FRAME;
                     }
                 }
+#endif
                 
                 SwapBuffers(DeviceContext);
-                
-                
             }
         }
         else

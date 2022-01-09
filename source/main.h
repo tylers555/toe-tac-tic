@@ -130,6 +130,7 @@ local_constant char *SIMPLE_DIRECTION_TABLE[Direction_TOTAL] = {
 #include "asset.h" 
 #include "entity.h"
 #include "world.h"
+#include "audio_mixer.h"
 #include "world_editor.h"
 #include "tic_tac_toe.h"
 
@@ -146,8 +147,6 @@ struct state_change_data {
     game_mode NewMode;
     const char *NewLevel;
 };
-
-
 
 //~ Forward declarations
 internal inline void ChangeState(game_mode NewMode, string NewLevel);

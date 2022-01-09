@@ -1214,7 +1214,7 @@ asset_system::ProcessSoundEffect(){
         
         if(DoAttribute(String, "path")){
             const char *Path = Expect(String);
-            sound_data Data = LoadWavFile(&Memory, Path);
+            sound_data Data = LoadWavFile(&OSSoundBuffer, &Memory, Path);
             if(!Data.Samples){
                 LogError("'%s' isn't a valid path to a wav file!", Path);
             }

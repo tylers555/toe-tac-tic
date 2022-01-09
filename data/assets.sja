@@ -549,8 +549,16 @@
 #                              Sound effects
 # //////////////////////////////////////////////////////////////////////////
 
-:SoundEffect test
+: SoundEffect test_music
     path "asset_sound_effects/music_test.wav"
+
+: SoundEffect ttt_place_mark
+    path "asset_sound_effects/crack_00.wav"
+    # path "asset_sound_effects/music_test.wav"
+
+: SoundEffect ttt_win
+    path "asset_sound_effects/glide_00.wav"
+    # path "asset_sound_effects/music_test.wav"
 
 # //////////////////////////////////////////////////////////////////////////
 #                             Tic Tac Toe Stuff

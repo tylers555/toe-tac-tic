@@ -355,8 +355,12 @@ internal b8 PollEvents(os_event *Event);
 
 //~ Sound buffer
 struct os_sound_buffer {
-    u32 SamplesPerSecond;
+    s16 *Samples;
+    u32 SamplesToWrite;
+    u32 SampleRate;
 };
+
+global os_sound_buffer OSSoundBuffer;
 
 //~ Files
 enum open_file_flags_ {

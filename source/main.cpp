@@ -32,6 +32,8 @@ global asset_system AssetSystem;
 
 global font_system FontSystem;
 
+global audio_mixer AudioMixer;
+
 //~ TODO(Tyler): Refactor these!
 global font MainFont; // TODO(Tyler): Remove this one
 global font TitleFont;
@@ -49,8 +51,7 @@ global game_mode GameMode = GameMode_TicTacToe;
 //~ Helpers
 internal inline string
 String(const char *S){
-    string Result = Strings.GetString(S);
-    return(Result);
+    return Strings.GetString(S);
 }
 
 //~ Includes
@@ -67,6 +68,7 @@ String(const char *S){
 #include "entity.cpp"
 #include "debug_ui.cpp"
 #include "world.cpp"
+#include "audio_mixer.cpp"
 
 #include "debug_game_mode.cpp"
 #include "world_editor.cpp"
@@ -116,6 +118,11 @@ InitializeGame(){
     WorldManager.LoadWorld(STARTUP_LEVEL);
     
     WorldEditor.Initialize();
+    
+    AudioMixer.Initialize(&PermanentStorageArena);
+    
+    AssetSystem.LoadAssetFile(ASSET_FILE_PATH);
+    AudioMixer.PlaySound(AssetSystem.GetSoundEffect(String("test_music")));
 }
 
 internal void
@@ -143,6 +150,8 @@ GameUpdateAndRender(){
             UpdateAndRenderTicTacToe();
         }break;
     }
+    
+    AudioMixer.Output(&OSSoundBuffer);
     
     UIManager.EndFrame();
     DEBUGRenderOverlay();

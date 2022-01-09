@@ -570,6 +570,9 @@ UpdateAndRenderTicTacToe(){
                     State->Turn = TTTMark_Computer;
                     State->Flags &= ~TTTStateFlag_PlayerHasMoved;
                     PlayerJustAdded = true;
+                    
+                    asset_sound_effect *Asset = AssetSystem.GetSoundEffect(String("ttt_place_mark"));
+                    AudioMixer.PlaySound(Asset);
                 }
             }
             
@@ -609,6 +612,11 @@ UpdateAndRenderTicTacToe(){
         RenderString(&TitleFont, WHITE, V2(400, 300), -10.0f, "Cat's game!");
     }
     if(Winner) {
+        if(!(State->Flags & TTTStateFlag_HasAWinner)){
+            asset_sound_effect *Asset = AssetSystem.GetSoundEffect(String("ttt_win"));
+            AudioMixer.PlaySound(Asset);
+        }
+        
         State->Flags |= TTTStateFlag_HasAWinner;
         if(!PlayerJustAdded && (OSInput.MouseJustDown(MouseButton_Left, KeyFlag_Any) ||
                                 OSInput.KeyJustDown(KeyCode_Space, KeyFlag_Any))){

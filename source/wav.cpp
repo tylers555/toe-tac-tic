@@ -78,7 +78,7 @@ LoadWavFile(os_sound_buffer *SoundBuffer, memory_arena *Arena, const char *Path)
     
     Result.ChannelCount = FmtChunk->ChannelCount;
     Result.SampleCount = DataChunk->DataSize/(FmtChunk->BitsPerSample/8)/Result.ChannelCount;
-    Result.Samples = PushArray(Arena, s16, Result.SampleCount*Result.ChannelCount);
+    Result.Samples = PushSpecialArray(Arena, s16, Result.SampleCount*Result.ChannelCount, ZeroAndAlign(16)); 
     u8 *Data = ConsumeBytes(&Stream, DataChunk->DataSize);
     Assert(Data);
     

@@ -69,15 +69,16 @@ MakeArena(memory_arena *Arena, umw Size){
 internal void *
 ArenaPush(memory_arena *Arena, umw Size, memory_info Info=ZeroAndAlign(4)){
     Size = AlignValue(Size, Info.Alignment);
-    Assert((Arena->Used + Size) <= Arena->Size);
     umw UnAligned = (umw)(Arena->Memory+Arena->Used);
     u8 *Result = (u8 *)AlignValue(UnAligned, Info.Alignment);
     umw Difference = (umw)Result - UnAligned;
     Arena->Used += Size+Difference;
+    Assert(Arena->Used <= Arena->Size);
     
     if(Info.Flags & MemoryFlag_ZeroMemory){
         ZeroMemory(Result, Size);
     }
+    
     
     return(Result);
 }

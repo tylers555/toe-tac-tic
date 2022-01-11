@@ -6,14 +6,6 @@
 #include "os.h"
 #include "opengl.h"
 
-struct win32_backbuffer {
-    BITMAPINFO Info;
-    void *Memory;
-    s32 Width, Height;
-    s32 Pitch;
-    s32 BytesPerPixel;
-};
-
 #define WGL_NUMBER_PIXEL_FORMATS_ARB            0x2000
 #define WGL_DRAW_TO_WINDOW_ARB                  0x2001
 #define WGL_DRAW_TO_BITMAP_ARB                  0x2002

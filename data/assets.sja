@@ -557,7 +557,7 @@
     # path "asset_sound_effects/music_test.wav"
 
 : SoundEffect ttt_win
-    path "asset_sound_effects/glide_00.wav"
+    path "asset_sound_effects/puhp_00.wav"
     # path "asset_sound_effects/music_test.wav"
 
 # //////////////////////////////////////////////////////////////////////////

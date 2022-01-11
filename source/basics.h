@@ -61,7 +61,7 @@ typedef double f64;
 #define S64_MAX 0x7fffffffffffffff
 
 #define S8_MIN  0x80
-#define S16_MIN 0x8000
+#define S16_MIN (-S16_MAX-1)
 #define S32_MIN 0x80000000
 #define S64_MIN 0x8000000000000000
 

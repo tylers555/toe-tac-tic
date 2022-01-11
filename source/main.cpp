@@ -151,8 +151,6 @@ GameUpdateAndRender(){
         }break;
     }
     
-    AudioMixer.Output(&OSSoundBuffer);
-    
     UIManager.EndFrame();
     DEBUGRenderOverlay();
     RendererRenderAll(&GameRenderer);

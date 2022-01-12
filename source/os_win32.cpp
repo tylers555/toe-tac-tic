@@ -288,7 +288,7 @@ Win32AudioThreadProc(void *Parameter){
     f32 TargetSecondsPerFrame = 10.0f / 1000.0f;
     
     LARGE_INTEGER LastTime = Win32GetWallClock();
-    while(true){
+    while(Running){
         
         u32 PaddingSamplesCount;
         if(FAILED(Error = AudioClient->GetCurrentPadding(&PaddingSamplesCount))) Assert(0);
@@ -317,21 +317,23 @@ Win32AudioThreadProc(void *Parameter){
         }
         
         f32 SecondsElapsed = Win32SecondsElapsed(LastTime, Win32GetWallClock());
-#if 0        
+#if 1
         if(SecondsElapsed < TargetSecondsPerFrame)
         {
             if(SleepIsGranular){
-                DWORD SleepMS = (DWORD)(1000.0f * (TargetSecondsPerFrame-SecondsElapsed));
+                DWORD SleepMS = (DWORD)Maximum((1000.0f*(TargetSecondsPerFrame-SecondsElapsed)-1.1), 0);
                 if(SleepMS > 0){
                     Sleep(SleepMS);
                 }
             }
             
             SecondsElapsed = Win32SecondsElapsed(LastTime, Win32GetWallClock());
+            //Assert(SecondsElapsed < TargetSecondsPerFrame);
             
-            while(SecondsElapsed < TargetSecondsPerFrame)
+            while(true)
             {
-                SecondsElapsed = Win32SecondsElapsed(LastTime, Win32GetWallClock());
+                if(FAILED(Error = AudioClient->GetCurrentPadding(&PaddingSamplesCount))) Assert(0);
+                if(PaddingSamplesCount == 0) break;
             }
             OSInput.dTime = TargetSecondsPerFrame;
         }
@@ -430,6 +432,7 @@ WinMain(HINSTANCE Instance,
             wglSwapIntervalEXT(1);
             
             HDC DeviceContext = GetDC(MainWindow);
+            Running = true;
             
             //~ Timing setup
             UINT DesiredSchedulerMS = 1;
@@ -475,7 +478,6 @@ WinMain(HINSTANCE Instance,
             InitializeGame();
             
             //~ Main loop
-            Running = true;
             while(Running){
                 RECT ClientRect;
                 GetClientRect(MainWindow, &ClientRect);

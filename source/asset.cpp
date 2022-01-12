@@ -29,7 +29,7 @@ asset_system::Initialize(memory_arena *Arena){
     DummyArt.Texture = InvalidTexture;
     DummyArt.Size = V2(1);
     
-    InitializeLoader(&Memory);
+    InitializeLoader(Arena);
     LoadAssetFile(ASSET_FILE_PATH);
 }
 

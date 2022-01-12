@@ -5,7 +5,7 @@ audio_mixer::Initialize(memory_arena *Arena){
 }
 
 void
-audio_mixer::PlaySound(asset_sound_effect *Asset, f32 Volume0, f32 Volume1){
+audio_mixer::PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags, f32 Volume0, f32 Volume1){
     if(!FirstFreeSound){
         FirstFreeSound = PushStruct(&SoundMemory, mixer_sound);
     }
@@ -30,8 +30,11 @@ audio_mixer::PlaySound(asset_sound_effect *Asset, f32 Volume0, f32 Volume1){
     mixer_sound *Sound = FirstFreeSound;
     *Sound = {};
     FirstFreeSound = Sound->Next;
+    
+    Sound->Flags = Flags;
     Sound->Volume0 = Volume0;
     Sound->Volume1 = Volume1;
+    
     
     Sound->Next = FirstSound;
     FirstSound = Sound;
@@ -60,13 +63,16 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
         
         u32 RemainingSamples = SoundEffect->SampleCount-Sound->SamplesPlayed;
         u32 RemainingChunks = RemainingSamples / 4;
+        if(Sound->Flags & MixerSoundFlag_Loop){
+            RemainingChunks = MaxChunksToWrite;
+        }
         
         u32 ChunksToWrite = Minimum(MaxChunksToWrite, RemainingChunks);
-#if 1
         __m128 Volume0 = _mm_set1_ps(Sound->Volume0);
         __m128 Volume1 = _mm_set1_ps(Sound->Volume1);
         
         s16 *InputSample = SoundEffect->Samples + SoundEffect->ChannelCount*Sound->SamplesPlayed;
+        s16 *InputEnd = SoundEffect->Samples + SoundEffect->SampleCount*2;
         __m128 *Dest0 = OutputChannel0;
         __m128 *Dest1 = OutputChannel1;
         for(u32 I=0; I < ChunksToWrite; I++){
@@ -74,17 +80,31 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
             __m128 D0 = _mm_load_ps((float*)Dest0);
             __m128 D1 = _mm_load_ps((float*)Dest1);
             
-            __m128 SampleValueA = _mm_setr_ps(InputSample[0], 
-                                              InputSample[1], 
-                                              InputSample[2], 
-                                              InputSample[3]);
-            InputSample += 4;
-            
-            __m128 SampleValueB = _mm_setr_ps(InputSample[0], 
-                                              InputSample[1], 
-                                              InputSample[2], 
-                                              InputSample[3]);
-            InputSample += 4;
+            __m128 SampleValueA;
+            __m128 SampleValueB;
+            if(Sound->Flags & MixerSoundFlag_Loop){
+#define GetNextInputSample ((InputSample > InputEnd) ? *(InputSample = SoundEffect->Samples) : 0, *InputSample++)
+                SampleValueA = _mm_setr_ps(GetNextInputSample,
+                                           GetNextInputSample,
+                                           GetNextInputSample,
+                                           GetNextInputSample);
+                SampleValueB = _mm_setr_ps(GetNextInputSample,
+                                           GetNextInputSample,
+                                           GetNextInputSample,
+                                           GetNextInputSample);
+#undef GetNextInputSample
+            }else{
+#define GetNextInputSample *InputSample++
+                SampleValueA = _mm_setr_ps(GetNextInputSample,
+                                           GetNextInputSample,
+                                           GetNextInputSample,
+                                           GetNextInputSample);
+                SampleValueB = _mm_setr_ps(GetNextInputSample,
+                                           GetNextInputSample,
+                                           GetNextInputSample,
+                                           GetNextInputSample);
+#undef GetNextInputSample
+            }
             
             __m128 SampleValue0 = _mm_shuffle_ps(SampleValueA, SampleValueB, 0b10001000);
             __m128 SampleValue1 = _mm_shuffle_ps(SampleValueA, SampleValueB, 0b11011101);
@@ -97,21 +117,11 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
             
             Dest0++;
             Dest1++;
-            
         }
-#endif
-        
-#if 0
-        s16 *DestSample = SoundBuffer->Samples;
-        s16 *InputSample = SoundEffect->Samples + SoundEffect->ChannelCount*Sound->SamplesPlayed;
-        for(u32 I=0; I<Minimum(SoundBuffer->SamplesToWrite, RemainingSamples); I++){
-            *DestSample++ += (s16)(Sound->Volume0*(f32)*InputSample++);
-            *DestSample++ += (s16)(Sound->Volume1*(f32)*InputSample++);
-        }
-#endif
         
         Sound->SamplesPlayed += SoundBuffer->SamplesPerFrame;
-        if(Sound->SamplesPlayed > SoundEffect->SampleCount){
+        if((Sound->SamplesPlayed > SoundEffect->SampleCount) &&
+           !(Sound->Flags & MixerSoundFlag_Loop)){
             if(PreviousSound) PreviousSound->Next = Sound->Next;
             else FirstSound = Sound->Next;
             
@@ -121,12 +131,14 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
             
             Sound = Temp;
         }else{
+            if(Sound->SamplesPlayed > SoundEffect->SampleCount){
+                Sound->SamplesPlayed = 0;
+            }
             PreviousSound = Sound;
             Sound = Sound->Next;
         }
     }
     
-#if 1
     __m128 *Source0 = OutputChannel0;
     __m128 *Source1 = OutputChannel1;
     
@@ -145,7 +157,6 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
         
         *SampleOut++ = S01;
     }
-#endif
     
     ArenaEndMarker(WorkingMemory, &Marker);
 }

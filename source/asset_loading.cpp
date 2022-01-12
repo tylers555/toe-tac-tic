@@ -379,9 +379,10 @@ asset_system::LoadAssetFile(const char *Path){
             end_loop:;
         }
         
-        ArenaEndMarker(&TransientStorageArena, &Marker);
-        
-        if(HitError) OSSleep(10); // To prevent consuming the CPU
+        if(HitError){
+            ArenaEndMarker(&TransientStorageArena, &Marker);
+            OSSleep(10); // To prevent consuming the CPU
+        }
         LastFileWriteTime = NewFileWriteTime;
     }while(HitError); 
     // This loop does result in a missed FPS but for right now it works just fine.

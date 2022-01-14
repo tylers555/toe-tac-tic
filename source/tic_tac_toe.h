@@ -5,8 +5,12 @@ typedef u8 ttt_mark;
 enum ttt_mark_ {
     TTTMark_None,
     
-    TTTMark_Player,
-    TTTMark_Computer,
+    TTTMark_Player   = 1,
+    TTTMark_Computer = 2,
+    
+    TTTMark_X = TTTMark_Player,
+    TTTMark_O = TTTMark_Computer,
+    TTTMark_E = 3,
     
     TTTMark_TOTAL
 };
@@ -83,7 +87,6 @@ struct tic_tac_toe_state {
     
     u32 OffenseWeight = 1;
     u32 DefenseWeight = 1;
-    
 };
 
 #endif //TIC_TAC_TOE_H

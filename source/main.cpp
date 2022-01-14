@@ -74,6 +74,7 @@ String(const char *S){
 #include "world_editor.cpp"
 #include "game.cpp"
 #include "tic_tac_toe.cpp"
+#include "board_game.cpp"
 
 //~ 
 

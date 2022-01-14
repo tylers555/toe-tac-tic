@@ -133,6 +133,7 @@ local_constant char *SIMPLE_DIRECTION_TABLE[Direction_TOTAL] = {
 #include "audio_mixer.h"
 #include "world_editor.h"
 #include "tic_tac_toe.h"
+#include "board_game.h"
 
 //~ Miscallaneous
 enum game_mode {

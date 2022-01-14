@@ -7,8 +7,14 @@ audio_mixer::Initialize(memory_arena *Arena){
 void
 audio_mixer::PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags, f32 Volume0, f32 Volume1){
     if(!FirstFreeSound){
+        if(FirstFreeSoundMixerThread){
+            FirstFreeSound = FirstFreeSoundMixerThread;
+            FirstFreeSoundMixerThread = 0;
+        }
         FirstFreeSound = PushStruct(&SoundMemory, mixer_sound);
     }
+    
+    mixer_sound *Sound = FirstFreeSound;
     
 #if 1
     sound_data *Data = &Asset->Sound;
@@ -27,7 +33,6 @@ audio_mixer::PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags, f32 V
     }
 #endif
     
-    mixer_sound *Sound = FirstFreeSound;
     *Sound = {};
     FirstFreeSound = Sound->Next;
     
@@ -126,8 +131,8 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
             else FirstSound = Sound->Next;
             
             mixer_sound *Temp = Sound->Next;
-            Sound->Next = FirstFreeSound;
-            FirstFreeSound = Sound;
+            Sound->Next = FirstFreeSoundMixerThread;
+            FirstFreeSoundMixerThread = Sound;
             
             Sound = Temp;
         }else{

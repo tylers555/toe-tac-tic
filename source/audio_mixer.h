@@ -24,7 +24,8 @@ struct audio_mixer {
     mixer_sound *FirstSound;
     mixer_sound *FirstFreeSound;
     
-    mixer_sound *FirstSoundToAdd;
+    //mixer_sound *FirstSoundMixerThread;
+    mixer_sound *FirstFreeSoundMixerThread;
     
     void PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags=MixerSoundFlag_None, f32 Volume1=1.0f, f32 Volume2=1.0f);
     

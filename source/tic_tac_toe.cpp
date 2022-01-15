@@ -906,7 +906,7 @@ UpdateAndRenderTicTacToe(){
                 if(OSInput.MouseJustDown(MouseButton_Left, KeyFlag_Any) ||
                    OSInput.KeyJustDown(KeyCode_Space, KeyFlag_Any)){
                     *Mark = TTTMark_Player;
-                    State->Turn = TTTMark_Computer;
+                    //State->Turn = TTTMark_Computer;
                     State->Flags &= ~TTTStateFlag_PlayerHasMoved;
                     PlayerJustAdded = true;
                     

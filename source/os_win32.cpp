@@ -1,4 +1,3 @@
-#include "main.cpp"
 
 #include <windows.h>
 #include <gl/gl.h>
@@ -9,6 +8,17 @@
 #ifdef CopyMemory
 #undef CopyMemory
 #endif
+
+#ifdef ZeroMemory
+#undef ZeroMemory
+#endif
+
+#ifdef MoveMemory
+#undef MoveMemory
+#endif
+
+#include "main.cpp"
+
 
 #include "os_win32.h"
 #include "opengl_renderer.cpp"
@@ -334,6 +344,7 @@ Win32AudioThreadProc(void *Parameter){
             {
                 if(FAILED(Error = AudioClient->GetCurrentPadding(&PaddingSamplesCount))) Assert(0);
                 if(PaddingSamplesCount == 0) break;
+                _mm_pause();
             }
             OSInput.dTime = TargetSecondsPerFrame;
         }

@@ -6,14 +6,14 @@ audio_mixer::Initialize(memory_arena *Arena){
 
 void
 audio_mixer::PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags, f32 Volume0, f32 Volume1){
+    TicketMutexBegin(&FreeSoundMutex);
+    
     if(!FirstFreeSound){
-        if(FirstFreeSoundMixerThread &&
-           (FirstFreeSoundMixerThread != LastFreeSoundMixerThread)){
-            FirstFreeSound = FirstFreeSoundMixerThread;
-            FirstFreeSoundMixerThread = 0;
-        }
         FirstFreeSound = PushStruct(&SoundMemory, mixer_sound);
+        InterlockedIncrement(&FreeSoundCounter);
     }
+    
+    InterlockedDecrement(&FreeSoundCounter);
     
     mixer_sound *Sound = FirstFreeSound;
     
@@ -30,9 +30,11 @@ audio_mixer::PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags, f32 V
     FirstSound = Sound;
     
     Sound->Data = Data;
+    
+    TicketMutexEnd(&FreeSoundMutex);
 }
 
-// NOTE(Tyler): THIS RUNS IN A SEPARATE THREAD!
+//~ NOTE(Tyler): THIS RUNS IN A SEPARATE THREAD!
 void
 audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBuffer){
     //TIMED_FUNCTION();
@@ -115,19 +117,18 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
             if(PreviousSound) PreviousSound->Next = Sound->Next;
             else FirstSound = Sound->Next;
             
+            TicketMutexBegin(&FreeSoundMutex);
+            
             mixer_sound *Temp = Sound->Next;
             Sound->Next = 0;
             
-            if(!FirstFreeSoundMixerThread){
-                LastFreeSoundMixerThread = Sound;
-                FirstFreeSoundMixerThread = Sound;
-                LastFreeSoundMixerThread->Next = 0;
-            }else{
-                LastFreeSoundMixerThread->Next = Sound;
-                LastFreeSoundMixerThread = Sound;
-            }
+            Sound->Next = FirstFreeSound;
+            FirstFreeSound = Sound;
             
+            InterlockedIncrement(&FreeSoundCounter);
             Sound = Temp;
+            
+            TicketMutexEnd(&FreeSoundMutex);
         }else{
             if(Sound->SamplesPlayed > SoundEffect->SampleCount){
                 Sound->SamplesPlayed = 0;

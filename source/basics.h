@@ -95,5 +95,4 @@ HashString(const char *String){
     return(Result);
 }
 
-
 #endif //SNAIL_JUMPY_PRIMITIVE_TYPES_H

@@ -16,11 +16,11 @@ audio_mixer::PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags, f32 V
     InterlockedDecrement(&FreeSoundCounter);
     
     mixer_sound *Sound = FirstFreeSound;
+    FirstFreeSound = FirstFreeSound->Next;
     
     sound_data *Data = &Asset->Sound;
     
     *Sound = {};
-    FirstFreeSound = Sound->Next;
     
     Sound->Flags = Flags;
     Sound->Volume0 = Volume0;

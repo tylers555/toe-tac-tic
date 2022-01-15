@@ -7,7 +7,8 @@ audio_mixer::Initialize(memory_arena *Arena){
 void
 audio_mixer::PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags, f32 Volume0, f32 Volume1){
     if(!FirstFreeSound){
-        if(FirstFreeSoundMixerThread){
+        if(FirstFreeSoundMixerThread &&
+           (FirstFreeSoundMixerThread != LastFreeSoundMixerThread)){
             FirstFreeSound = FirstFreeSoundMixerThread;
             FirstFreeSoundMixerThread = 0;
         }
@@ -16,22 +17,7 @@ audio_mixer::PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags, f32 V
     
     mixer_sound *Sound = FirstFreeSound;
     
-#if 1
     sound_data *Data = &Asset->Sound;
-#else
-    sound_data *Data = PushStruct(&PermanentStorageArena, sound_data);
-    Data->SampleCount = 7440000;
-    Data->Samples = PushArray(&PermanentStorageArena, s16, 2*Data->SampleCount);
-    Data->ChannelCount = 2;
-    u32 Period = (48000/256);
-    s16 Volume = 10000;
-    s16 *Dest = Data->Samples;
-    for(u32 I=0; I<Data->SampleCount; I++){
-        s16 SampleValue = ((I/Period) % 2) ? Volume : -Volume;
-        *Dest++ = SampleValue;
-        *Dest++ = -SampleValue;
-    }
-#endif
     
     *Sound = {};
     FirstFreeSound = Sound->Next;
@@ -39,7 +25,6 @@ audio_mixer::PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags, f32 V
     Sound->Flags = Flags;
     Sound->Volume0 = Volume0;
     Sound->Volume1 = Volume1;
-    
     
     Sound->Next = FirstSound;
     FirstSound = Sound;
@@ -131,8 +116,16 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
             else FirstSound = Sound->Next;
             
             mixer_sound *Temp = Sound->Next;
-            Sound->Next = FirstFreeSoundMixerThread;
-            FirstFreeSoundMixerThread = Sound;
+            Sound->Next = 0;
+            
+            if(!FirstFreeSoundMixerThread){
+                LastFreeSoundMixerThread = Sound;
+                FirstFreeSoundMixerThread = Sound;
+                LastFreeSoundMixerThread->Next = 0;
+            }else{
+                LastFreeSoundMixerThread->Next = Sound;
+                LastFreeSoundMixerThread = Sound;
+            }
             
             Sound = Temp;
         }else{

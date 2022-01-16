@@ -6,7 +6,7 @@ audio_mixer::Initialize(memory_arena *Arena){
 }
 
 void
-audio_mixer::PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags, f32 Volume0, f32 Volume1){
+audio_mixer::PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags, f32 PlaybackSpeed, f32 Volume0, f32 Volume1){
     TicketMutexBegin(&FreeSoundMutex);
     
     if(!FirstFreeSound){
@@ -23,6 +23,7 @@ audio_mixer::PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags, f32 V
     
     *Sound = {};
     
+    Sound->Speed = PlaybackSpeed;
     Sound->Flags = Flags;
     Sound->Volume0 = Volume0;
     Sound->Volume1 = Volume1;
@@ -40,6 +41,10 @@ void
 audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBuffer){
     //TIMED_FUNCTION();
     
+    const __m128 SignMask = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
+    const __m128 One = _mm_set1_ps(1.0f);
+    const __m128 Half = _mm_set1_ps(0.49999f); // With epsilon
+    
     ZeroMemory(SoundBuffer->Samples, SoundBuffer->SamplesToWrite*2*sizeof(*SoundBuffer->Samples));
     u32 MaxChunksToWrite = SoundBuffer->SamplesToWrite / 4;
     Assert(!(SoundBuffer->SamplesToWrite % 4));
@@ -54,7 +59,7 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
         sound_data *SoundEffect = Sound->Data;
         Assert(SoundEffect->ChannelCount == 2);
         
-        u32 RemainingSamples = SoundEffect->SampleCount-Sound->SamplesPlayed;
+        u32 RemainingSamples = SoundEffect->SampleCount-RoundF32ToS32(Sound->SamplesPlayed);
         u32 RemainingChunks = RemainingSamples / 4;
         if(Sound->Flags & MixerSoundFlag_Loop){
             RemainingChunks = MaxChunksToWrite;
@@ -67,8 +72,16 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
         __m128 MasterVolume0 = _mm_set1_ps(MasterVolume.E[0]);
         __m128 MasterVolume1 = _mm_set1_ps(MasterVolume.E[1]);
         
-        s16 *InputSample = SoundEffect->Samples + SoundEffect->ChannelCount*Sound->SamplesPlayed;
-        s16 *InputEnd = SoundEffect->Samples + SoundEffect->SampleCount*2;
+        f32 dSample = Sound->Speed*SoundEffect->BaseSpeed;
+        __m128 dSampleM128 = _mm_set1_ps(4*dSample);
+        __m128 SampleP = _mm_setr_ps(Sound->SamplesPlayed + 0.0f*dSample, 
+                                     Sound->SamplesPlayed + 1.0f*dSample, 
+                                     Sound->SamplesPlayed + 2.0f*dSample, 
+                                     Sound->SamplesPlayed + 3.0f*dSample);
+        
+        s16 *Samples = SoundEffect->Samples;
+        u32 TotalSampleCount = SoundEffect->ChannelCount*SoundEffect->SampleCount;
+        
         __m128 *Dest0 = OutputChannel0;
         __m128 *Dest1 = OutputChannel1;
         for(u32 I=0; I < ChunksToWrite; I++){
@@ -76,73 +89,47 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
             __m128 D0 = _mm_load_ps((float*)Dest0);
             __m128 D1 = _mm_load_ps((float*)Dest1);
             
+            __m128i SampleIndex = _mm_cvtps_epi32(_mm_sub_ps(SampleP, Half));
+            __m128 Fraction = _mm_sub_ps(SampleP, _mm_cvtepi32_ps(SampleIndex));
+            
             // NOTE(Tyler): It would work to save this and use it for the next iteration of the loop
             // (NextSampleValueA & NextSampleValueB)
-            __m128 SampleValueA;
-            __m128 SampleValueB;
-            __m128 NextSampleValueA;
-            __m128 NextSampleValueB;
-            if(Sound->Flags & MixerSoundFlag_Loop){
-#define GetNextInputSample ((InputSample > InputEnd) ? *(InputSample = SoundEffect->Samples) : 0, *InputSample++)
-                SampleValueA = _mm_setr_ps(GetNextInputSample,
-                                           GetNextInputSample,
-                                           GetNextInputSample,
-                                           GetNextInputSample);
-                SampleValueB = _mm_setr_ps(GetNextInputSample,
-                                           GetNextInputSample,
-                                           GetNextInputSample,
-                                           GetNextInputSample);
-                s16 *Temp = InputSample;
-                NextSampleValueA = _mm_setr_ps(GetNextInputSample,
-                                               GetNextInputSample,
-                                               GetNextInputSample,
-                                               GetNextInputSample);
-                NextSampleValueB = _mm_setr_ps(GetNextInputSample,
-                                               GetNextInputSample,
-                                               GetNextInputSample,
-                                               GetNextInputSample);
-                InputSample = Temp;
-#undef GetNextInputSample
-            }else{
-#define GetNextInputSample *InputSample++
-                SampleValueA = _mm_setr_ps(GetNextInputSample,
-                                           GetNextInputSample,
-                                           GetNextInputSample,
-                                           GetNextInputSample);
-                SampleValueB = _mm_setr_ps(GetNextInputSample,
-                                           GetNextInputSample,
-                                           GetNextInputSample,
-                                           GetNextInputSample);
-                s16 *Temp = InputSample;
-                NextSampleValueA = _mm_setr_ps(GetNextInputSample,
-                                               GetNextInputSample,
-                                               GetNextInputSample,
-                                               GetNextInputSample);
-                NextSampleValueB = _mm_setr_ps(GetNextInputSample,
-                                               GetNextInputSample,
-                                               GetNextInputSample,
-                                               GetNextInputSample);
-                InputSample = Temp;
-#undef GetNextInputSample
-            }
+            __m128 SampleValue0 = _mm_setr_ps(Samples[(((u32 *)&SampleIndex)[0]*2)     % TotalSampleCount],
+                                              Samples[(((u32 *)&SampleIndex)[1]*2)     % TotalSampleCount],
+                                              Samples[(((u32 *)&SampleIndex)[2]*2)     % TotalSampleCount],
+                                              Samples[(((u32 *)&SampleIndex)[3]*2)     % TotalSampleCount]);
+            __m128 SampleValue1 = _mm_setr_ps(Samples[(((u32 *)&SampleIndex)[0]*2 + 1) % TotalSampleCount],
+                                              Samples[(((u32 *)&SampleIndex)[1]*2 + 1) % TotalSampleCount],
+                                              Samples[(((u32 *)&SampleIndex)[2]*2 + 1) % TotalSampleCount],
+                                              Samples[(((u32 *)&SampleIndex)[3]*2 + 1) % TotalSampleCount]);
             
-            __m128 SampleValue0 = _mm_shuffle_ps(SampleValueA, SampleValueB, 0b10001000);
-            __m128 SampleValue1 = _mm_shuffle_ps(SampleValueA, SampleValueB, 0b11011101);
+            __m128 NextSampleValue0 = _mm_setr_ps(Samples[(((u32 *)&SampleIndex)[0]*2 + 2) % TotalSampleCount],
+                                                  Samples[(((u32 *)&SampleIndex)[1]*2 + 2) % TotalSampleCount],
+                                                  Samples[(((u32 *)&SampleIndex)[2]*2 + 2) % TotalSampleCount],
+                                                  Samples[(((u32 *)&SampleIndex)[3]*2 + 2) % TotalSampleCount]);
+            __m128 NextSampleValue1 = _mm_setr_ps(Samples[(((u32 *)&SampleIndex)[0]*2 + 3) % TotalSampleCount],
+                                                  Samples[(((u32 *)&SampleIndex)[1]*2 + 3) % TotalSampleCount],
+                                                  Samples[(((u32 *)&SampleIndex)[2]*2 + 3) % TotalSampleCount],
+                                                  Samples[(((u32 *)&SampleIndex)[3]*2 + 3) % TotalSampleCount]);
             
-            __m128 NextSampleValue0 = _mm_shuffle_ps(NextSampleValueA, NextSampleValueB, 0b10001000);
-            __m128 NextSampleValue1 = _mm_shuffle_ps(NextSampleValueA, NextSampleValueB, 0b11011101);
+            __m128 FinalSampleValue0 = _mm_add_ps(_mm_mul_ps(_mm_sub_ps(One, Fraction), SampleValue0), 
+                                                  _mm_mul_ps(Fraction, NextSampleValue0));
+            __m128 FinalSampleValue1 = _mm_add_ps(_mm_mul_ps(_mm_sub_ps(One, Fraction), SampleValue1), 
+                                                  _mm_mul_ps(Fraction, NextSampleValue1));
             
-            D0 = _mm_add_ps(D0, _mm_mul_ps(MasterVolume0, _mm_mul_ps(Volume0, SampleValue0)));
-            D1 = _mm_add_ps(D1, _mm_mul_ps(MasterVolume1, _mm_mul_ps(Volume1, SampleValue1)));
+            D0 = _mm_add_ps(D0, _mm_mul_ps(MasterVolume0, _mm_mul_ps(Volume0, FinalSampleValue0)));
+            D1 = _mm_add_ps(D1, _mm_mul_ps(MasterVolume1, _mm_mul_ps(Volume1, FinalSampleValue1)));
             
             _mm_store_ps((float*)Dest0, D0);
             _mm_store_ps((float*)Dest1, D1);
             
             Dest0++;
             Dest1++;
+            
+            SampleP = _mm_add_ps(SampleP, dSampleM128);
         }
         
-        Sound->SamplesPlayed += SoundBuffer->SamplesPerFrame;
+        Sound->SamplesPlayed += dSample*(f32)SoundBuffer->SamplesPerFrame;
         if((Sound->SamplesPlayed > SoundEffect->SampleCount) &&
            !(Sound->Flags & MixerSoundFlag_Loop)){
             if(PreviousSound) PreviousSound->Next = Sound->Next;

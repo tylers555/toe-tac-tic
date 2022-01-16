@@ -236,6 +236,7 @@ struct sound_data {
     s16 *Samples;
     u16 ChannelCount;
     u32 SampleCount;
+    f32 BaseSpeed;
 };
 
 struct asset_sound_effect {

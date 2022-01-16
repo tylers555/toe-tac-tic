@@ -550,16 +550,23 @@
 # //////////////////////////////////////////////////////////////////////////
 
 : SoundEffect test_music
+    # path "asset_sound_effects/44100Hz_Test2.wav"
+    # path "asset_sound_effects/44100Hz_Test.wav"
+    # path "asset_sound_effects/48000Hz_Test.wav"
+    # path "asset_sound_effects/osj/Music.wav"
     path "asset_sound_effects/osj_music.wav"
-    # path "asset_sound_effects/glide_00.wav"
 
 : SoundEffect ttt_place_mark
-    path "asset_sound_effects/crack_00.wav"
-    # path "asset_sound_effects/music_test.wav"
+    # path "asset_sound_effects/crack_00.wav"
+    path "asset_sound_effects/osj/LandFX.wav"
 
 : SoundEffect ttt_win
-    path "asset_sound_effects/puhp_00.wav"
-    # path "asset_sound_effects/music_test.wav"
+    # path "asset_sound_effects/puhp_00.wav"
+    path "asset_sound_effects/osj/WinFX.wav"
+
+: SoundEffect ttt_lose
+    # path "asset_sound_effects/puhp_00.wav"
+    path "asset_sound_effects/osj/LoseFX.wav"
 
 # //////////////////////////////////////////////////////////////////////////
 #                             Tic Tac Toe Stuff

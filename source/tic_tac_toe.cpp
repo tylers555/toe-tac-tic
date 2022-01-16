@@ -952,7 +952,12 @@ UpdateAndRenderTicTacToe(){
     }
     if(Winner) {
         if(!(State->Flags & TTTStateFlag_HasAWinner)){
-            asset_sound_effect *Asset = AssetSystem.GetSoundEffect(String("ttt_win"));
+            asset_sound_effect *Asset = 0;
+            if(Winner == TTTMark_Player){
+                Asset = AssetSystem.GetSoundEffect(String("ttt_win"));
+            }else{
+                Asset = AssetSystem.GetSoundEffect(String("ttt_lose"));
+            }
             AudioMixer.PlaySound(Asset);
         }
         

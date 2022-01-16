@@ -10,7 +10,8 @@ enum mixer_sound_flags_ {
 struct mixer_sound {
     mixer_sound_flags Flags;
     sound_data *Data;
-    u32 SamplesPlayed;
+    f32 SamplesPlayed;
+    f32 Speed;
     
     f32 Volume0;
     f32 Volume1;
@@ -29,7 +30,8 @@ struct audio_mixer {
     
     v2 MasterVolume;
     
-    void PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags=MixerSoundFlag_None, f32 Volume1=1.0f, f32 Volume2=1.0f);
+    void PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags=MixerSoundFlag_None, 
+                   f32 PlaybackSpeed=1.0f, f32 Volume1=1.0f, f32 Volume2=1.0f);
     
     //~
     void Initialize(memory_arena *Arena);

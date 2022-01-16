@@ -66,32 +66,53 @@ LoadWavFile(os_sound_buffer *SoundBuffer, memory_arena *Arena, const char *Path)
             }
             
             if(FmtChunk->SampleRate != SoundBuffer->SampleRate){
-                Assert(0);
+                Result.BaseSpeed = (f32)FmtChunk->SampleRate / (f32)SoundBuffer->SampleRate;
+            }else{
+                Result.BaseSpeed = 1.0f;
             }
+            
         }else if(CheckChunkID(ChunkID, "data")){
             DataChunk = ConsumeType(&Stream, wav_data_chunk);
-        }else if(CheckChunkID(ChunkID, "JUNK")){
+        }else{
             u32 ChunkSize = *ConsumeType(&Stream, u32);
             ConsumeBytes(&Stream, ChunkSize);
         }
     }
     
-    Result.ChannelCount = FmtChunk->ChannelCount;
-    Result.SampleCount = DataChunk->DataSize/(FmtChunk->BitsPerSample/8)/Result.ChannelCount;
+    Result.ChannelCount = 2;
+    Result.SampleCount = DataChunk->DataSize/(FmtChunk->ChannelCount*FmtChunk->BitsPerSample/8);
+    s16 *Buffer = PushSpecialArray(Arena, s16, Result.SampleCount*Result.ChannelCount, ZeroAndAlign(16)); 
     Result.Samples = PushSpecialArray(Arena, s16, Result.SampleCount*Result.ChannelCount, ZeroAndAlign(16)); 
-    u8 *Data = ConsumeBytes(&Stream, DataChunk->DataSize);
-    Assert(Data);
+    u8 *Data_ = ConsumeBytes(&Stream, DataChunk->DataSize);
+    Assert(Data_);
     
     if(FmtChunk->BitsPerSample == 8){
+        u8 *Data = Data_;
         for(u32 I=0; I<Result.SampleCount; I++){
-            Result.Samples[I] = 2*Data[I];
+            Buffer[I] = 2*Data[I];
         }
     }else if(FmtChunk->BitsPerSample == 16){
-        CopyMemory(Result.Samples, Data, DataChunk->DataSize);
+        CopyMemory(Buffer, Data_, DataChunk->DataSize);
     }else if(FmtChunk->BitsPerSample == 32){
+        u32 *Data = (u32 *)Data_;
         for(u32 I=0; I<Result.SampleCount; I++){
-            Result.Samples[I] = Data[I]/2;
+            Buffer[I] = (s16)(Data[I]/2);
         }
+    }else{
+        Assert(0);
+    }
+    
+    if(FmtChunk->ChannelCount == 1){
+        for(u32 I=0; I<1*Result.SampleCount; I++){
+            Result.Samples[2*I]   = Buffer[I];
+            Result.Samples[2*I+1] = Buffer[I];
+        }
+    }else if(FmtChunk->ChannelCount == 2){
+        for(u32 I=0; I<2*Result.SampleCount; I++){
+            Result.Samples[I] = Buffer[I];
+        }
+    }else{
+        Assert(0);
     }
     
     return Result;

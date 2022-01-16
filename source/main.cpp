@@ -123,7 +123,7 @@ InitializeGame(){
     AudioMixer.Initialize(&PermanentStorageArena);
     
     AssetSystem.LoadAssetFile(ASSET_FILE_PATH);
-    AudioMixer.PlaySound(AssetSystem.GetSoundEffect(String("test_music")), MixerSoundFlag_Loop);
+    AudioMixer.PlaySound(AssetSystem.GetSoundEffect(String("test_music")), MixerSoundFlag_Loop, 1.0f, 1.0f, 1.0f);
 }
 
 internal void

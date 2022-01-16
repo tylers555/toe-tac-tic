@@ -23,6 +23,7 @@ global state_change_data StateChangeData;
 
 global world_editor WorldEditor;
 global tic_tac_toe_state TicTacToeState;
+global menu_state MenuState;
 
 global string_manager Strings;
 
@@ -36,7 +37,6 @@ global audio_mixer AudioMixer;
 
 //~ TODO(Tyler): Refactor these!
 global font MainFont; // TODO(Tyler): Remove this one
-global font TitleFont;
 global font DebugFont;
 
 //~ Gameplay variables
@@ -46,7 +46,7 @@ global world_data *CurrentWorld;
 
 //~ Hotloaded variables file!
 // TODO(Tyler): Load this from a variables file at startup
-global game_mode GameMode = GameMode_TicTacToe;
+global game_mode GameMode = GameMode_Menu;
 
 //~ Helpers
 internal inline string
@@ -74,7 +74,8 @@ String(const char *S){
 #include "world_editor.cpp"
 #include "game.cpp"
 #include "tic_tac_toe.cpp"
-#include "board_game.cpp"
+#include "puzzle_board.cpp"
+#include "menu.cpp"
 
 //~ 
 
@@ -102,11 +103,11 @@ InitializeGame(){
     Strings.Initialize(&PermanentStorageArena);
     FontSystem.Initialize(&PermanentStorageArena);
     
+    FontSystem.LoadFont(String("debug_ui_text_font"), "asset_fonts/Merriweather/Merriweather-Black.ttf", 22);
+    FontSystem.LoadFont(String("debug_ui_title_font"), "asset_fonts/Merriweather/Merriweather-Black.ttf", 35);
     FontSystem.LoadFont(String("debug_font"), "asset_fonts/Roboto-Regular.ttf", 22);
-    FontSystem.LoadFont(String("title_font"), "asset_fonts/Roboto-Regular.ttf", 35);
     FontSystem.LoadFont(String("main_font"),  "asset_fonts/Press-Start-2P.ttf", 26);
     MainFont  = *FontSystem.FindFont(String("main_font"));
-    TitleFont = *FontSystem.FindFont(String("title_font"));
     DebugFont = *FontSystem.FindFont(String("debug_font"));
     
     EntityManager.Initialize(&PermanentStorageArena);
@@ -123,7 +124,7 @@ InitializeGame(){
     AudioMixer.Initialize(&PermanentStorageArena);
     
     AssetSystem.LoadAssetFile(ASSET_FILE_PATH);
-    AudioMixer.PlaySound(AssetSystem.GetSoundEffect(String("test_music")), MixerSoundFlag_Loop, 1.0f, 1.0f, 1.0f);
+    AudioMixer.PlaySound(AssetSystem.GetSoundEffect(String("test_music")), MixerSoundFlag_Loop, 1.0f);
 }
 
 internal void
@@ -141,6 +142,9 @@ GameUpdateAndRender(){
         case GameMode_Debug: {
             UpdateAndRenderDebug();
         }break;
+        case GameMode_Menu: {
+            UpdateAndRenderMenu();
+        }break;
         case GameMode_WorldEditor: {
             WorldEditor.UpdateAndRender();
         }break;
@@ -150,10 +154,10 @@ GameUpdateAndRender(){
         case GameMode_TicTacToe: {
             UpdateAndRenderTicTacToe();
         }break;
+        case GameMode_Puzzle: {
+            UpdateAndRenderPuzzle();
+        }
     }
-    
-    
-    //AudioMixer.PlaySound(AssetSystem.GetSoundEffect(String("ttt_win")));
     
     UIManager.EndFrame();
     DEBUGRenderOverlay();
@@ -192,6 +196,9 @@ GameUpdateAndRender(){
             }break;
             case GameMode_TicTacToe: {
                 GameMode = GameMode_TicTacToe;
+            }break;
+            case GameMode_Menu: {
+                GameMode = GameMode_Menu;
             }break;
         }
         
@@ -246,7 +253,9 @@ ProcessDefaultEvent(os_event *Event){
                     PhysicsDebugger.Scale *= 1.01f;
                 } break;
 #endif
-                
+                case KeyCode_Escape: {
+                    if(GameMode != GameMode_Menu) OpenPauseMenu();
+                }break;
             }
             
             OSInput.KeyboardState[Event->Key] |= KeyState_RepeatDown;

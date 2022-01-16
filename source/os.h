@@ -392,5 +392,6 @@ internal void  DefaultFree(void *Pointer);
 
 //~ Miscellaneous
 internal void OSSleep(u32 Milliseconds);
+internal void OSEndGame();
 
 #endif // SNAIL_JUMPY_OS_H

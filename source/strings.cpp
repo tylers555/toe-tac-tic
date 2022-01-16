@@ -70,12 +70,15 @@ string_manager::Initialize(memory_arena *Arena){
 
 string
 string_manager::GetString(const char *String){
+    string Result = {};
+    if(!String) return Result;
+    
     const char *ResultString = FindInHashTable(&Table, String);
     if(!ResultString){
         ResultString = ArenaPushCString(&StringMemory, String);
         InsertIntoHashTable(&Table, ResultString, ResultString);
     }
-    string Result;
+    
     Result.ID = (u64)ResultString;
     return(Result);
 }

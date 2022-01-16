@@ -550,8 +550,8 @@
 # //////////////////////////////////////////////////////////////////////////
 
 : SoundEffect test_music
-    path "asset_sound_effects/osj/Music.wav"
-    # path "asset_sound_effects/osj_music.wav"
+    # path "asset_sound_effects/osj/Music.wav"
+    path "asset_sound_effects/osj_music.wav"
 
 : SoundEffect ttt_place_mark
     # path "asset_sound_effects/crack_00.wav"

@@ -795,9 +795,6 @@ internal void
 UpdateAndRenderTicTacToe(){
     TIMED_FUNCTION();
     
-#if 0
-    UpdateAndRenderBoardGame();
-#else
     b8 LeaveKeyboardMode = false;
     os_event Event;
     while(PollEvents(&Event)){
@@ -944,11 +941,11 @@ UpdateAndRenderTicTacToe(){
     }
     
     if(Winner == TTTMark_Player){
-        RenderString(&TitleFont, WHITE, V2(400, 300), -10.0f, "You win!");
+        RenderString(FontSystem.FindFont(String("debug_ui_title_font")), WHITE, V2(400, 300), -10.0f, "You win!");
     }else if(Winner == TTTMark_Computer){
-        RenderString(&TitleFont, WHITE, V2(400, 300), -10.0f, "Computer wins!");
+        RenderString(FontSystem.FindFont(String("debug_ui_title_font")), WHITE, V2(400, 300), -10.0f, "Computer wins!");
     }else if(Winner == TTTMark_TOTAL){
-        RenderString(&TitleFont, WHITE, V2(400, 300), -10.0f, "Cat's game!");
+        RenderString(FontSystem.FindFont(String("debug_ui_title_font")), WHITE, V2(400, 300), -10.0f, "Cat's game!");
     }
     if(Winner) {
         if(!(State->Flags & TTTStateFlag_HasAWinner)){
@@ -1000,5 +997,4 @@ UpdateAndRenderTicTacToe(){
                                   0.7f, CellSize, GameItem(0));
         }
     }
-#endif
 }

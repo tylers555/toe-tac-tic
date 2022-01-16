@@ -111,6 +111,23 @@ local_constant char *SIMPLE_DIRECTION_TABLE[Direction_TOTAL] = {
     "Direction up left",
 };
 
+//~ Miscallaneous
+enum game_mode {
+    GameMode_None,
+    GameMode_Debug,
+    GameMode_Menu,
+    GameMode_WorldEditor,
+    GameMode_MainGame,
+    GameMode_TicTacToe,
+    GameMode_Puzzle,
+};
+
+struct state_change_data {
+    b8 DidChange;
+    game_mode NewMode;
+    const char *NewLevel;
+};
+
 //~ Includes
 #include "os.h"
 #include "debug.h"
@@ -133,21 +150,8 @@ local_constant char *SIMPLE_DIRECTION_TABLE[Direction_TOTAL] = {
 #include "audio_mixer.h"
 #include "world_editor.h"
 #include "tic_tac_toe.h"
-#include "board_game.h"
-
-//~ Miscallaneous
-enum game_mode {
-    GameMode_None,
-    GameMode_Debug,
-    GameMode_WorldEditor,
-    GameMode_MainGame,
-    GameMode_TicTacToe,
-};
-struct state_change_data {
-    b8 DidChange;
-    game_mode NewMode;
-    const char *NewLevel;
-};
+#include "puzzle_board.h"
+#include "menu.h"
 
 //~ Forward declarations
 internal inline void ChangeState(game_mode NewMode, string NewLevel);

@@ -33,6 +33,56 @@ global IAudioRenderClient *AudioRenderClient;
 
 global u32 Win32SoundCursor;
 
+internal os_key_code
+Win32ConvertVKCode(u32 VKCode){
+    if(('0' <= VKCode) && (VKCode <= 'Z')) {
+        return (os_key_code) VKCode;
+    }else{
+        switch(VKCode){
+            //~ Special keys
+            case VK_UP:        return KeyCode_Up;        
+            case VK_DOWN:      return KeyCode_Down;      
+            case VK_LEFT:      return KeyCode_Left;      
+            case VK_RIGHT:     return KeyCode_Right;     
+            case VK_SPACE:     return KeyCode_Space;     
+            case VK_TAB:       return KeyCode_Tab;       
+            case VK_CONTROL:   return KeyCode_Control;   
+            case VK_SHIFT:     return KeyCode_Shift;     
+            case VK_ESCAPE:    return KeyCode_Escape;    
+            case VK_BACK:      return KeyCode_BackSpace; 
+            case VK_DELETE:    return KeyCode_Delete;    
+            case VK_RETURN:    return KeyCode_Return;    
+            case VK_MENU:      return KeyCode_Alt;       
+            case VK_F1:        return KeyCode_F1;        
+            case VK_F2:        return KeyCode_F2;        
+            case VK_F3:        return KeyCode_F3;        
+            case VK_F4:        return KeyCode_F4;        
+            case VK_F5:        return KeyCode_F5;        
+            case VK_F6:        return KeyCode_F6;        
+            case VK_F7:        return KeyCode_F7;        
+            case VK_F8:        return KeyCode_F8;        
+            case VK_F9:        return KeyCode_F9;        
+            case VK_F10:       return KeyCode_F10;       
+            case VK_F11:       return KeyCode_F11;       
+            case VK_F12:       return KeyCode_F12;       
+            
+            //~ Normal ascii
+            
+            case VK_OEM_1:      return (os_key_code)';'; 
+            case VK_OEM_PLUS:   return (os_key_code)'='; 
+            case VK_OEM_COMMA:  return (os_key_code)','; 
+            case VK_OEM_MINUS:  return (os_key_code)'-'; 
+            case VK_OEM_PERIOD: return (os_key_code)'.'; 
+            case VK_OEM_2:      return (os_key_code)'/'; 
+            case VK_OEM_3:      return (os_key_code)'`'; 
+            case VK_OEM_4:      return (os_key_code)'['; 
+            case VK_OEM_5:      return (os_key_code)'\\'; 
+            case VK_OEM_6:      return (os_key_code)']'; 
+            case VK_OEM_7:      return (os_key_code)'\''; 
+        }
+    }
+}
+
 internal void
 ToggleFullscreen(HWND Window){
     // NOTE(Tyler): Raymond Chen fullscreen code:
@@ -83,6 +133,11 @@ Win32MainWindowProc(HWND Window,
         }break;
         case WM_DESTROY: {
             Running = false;
+        }break;
+        case WM_KILLFOCUS: case WM_SETFOCUS: case WM_ACTIVATE: {
+            u8 KeyStates[256];
+            GetKeyboardState(KeyStates);
+            
         }break;
         default: {
             Result = DefWindowProcA(Window, Message, WParam, LParam);
@@ -858,7 +913,13 @@ PollEvents(os_event *Event){
     return(Result);
 }
 
+//~ Miscellaneous
 internal void
 OSSleep(u32 Milliseconds){
     Sleep(Milliseconds);
+}
+
+internal void
+OSEndGame(){
+    Running = false;
 }

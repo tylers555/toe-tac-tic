@@ -595,6 +595,16 @@ MakeColor(f32 R, f32 G, f32 B, f32 A=1.0f){
 }
 
 internal inline color
+MakeColor(u32 C){
+    color Result = {};
+    Result.R = (f32)((C >> 24) & 0xff) / 255.0f;
+    Result.G = (f32)((C >> 16) & 0xff) / 255.0f;
+    Result.B = (f32)((C >> 8)  & 0xff) / 255.0f;
+    Result.A = (f32)((C >> 0)  & 0xff) / 255.0f;
+    return Result;
+}
+
+internal inline color
 MixColor(color A, color B, f32 Value){
     Value = Clamp(Value, 0.0f, 1.0f);
     color Result;

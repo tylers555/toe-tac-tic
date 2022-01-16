@@ -1192,7 +1192,6 @@ asset_system::ProcessTilemap(){
 }
 
 //~ Fonts
-
 b8
 asset_system::ProcessFont(){
     return(ProcessIgnore());
@@ -1206,6 +1205,12 @@ asset_system::ProcessSoundEffect(){
     
     const char *Name = Expect(Identifier);
     asset_sound_effect *Sound = Strings.GetInHashTablePtr(&SoundEffects, Name);
+    if(Sound->Sound.Samples){
+        ProcessIgnore();
+        LogError("Cannot change a sound after game has started");
+        return true;
+    }
+    
     *Sound = {};
     
     while(true){

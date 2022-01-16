@@ -56,10 +56,10 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
     mixer_sound *PreviousSound = 0;
     mixer_sound *Sound = FirstSound;
     while(Sound){
-        sound_data *SoundEffect = Sound->Data;
-        Assert(SoundEffect->ChannelCount == 2);
+        sound_data *SoundData = Sound->Data;
+        Assert(SoundData->ChannelCount == 2);
         
-        u32 RemainingSamples = SoundEffect->SampleCount-RoundF32ToS32(Sound->SamplesPlayed);
+        u32 RemainingSamples = SoundData->SampleCount-RoundF32ToS32(Sound->SamplesPlayed);
         u32 RemainingChunks = RemainingSamples / 4;
         if(Sound->Flags & MixerSoundFlag_Loop){
             RemainingChunks = MaxChunksToWrite;
@@ -72,15 +72,15 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
         __m128 MasterVolume0 = _mm_set1_ps(MasterVolume.E[0]);
         __m128 MasterVolume1 = _mm_set1_ps(MasterVolume.E[1]);
         
-        f32 dSample = Sound->Speed*SoundEffect->BaseSpeed;
+        f32 dSample = Sound->Speed*SoundData->BaseSpeed;
         __m128 dSampleM128 = _mm_set1_ps(4*dSample);
         __m128 SampleP = _mm_setr_ps(Sound->SamplesPlayed + 0.0f*dSample, 
                                      Sound->SamplesPlayed + 1.0f*dSample, 
                                      Sound->SamplesPlayed + 2.0f*dSample, 
                                      Sound->SamplesPlayed + 3.0f*dSample);
         
-        s16 *Samples = SoundEffect->Samples;
-        u32 TotalSampleCount = SoundEffect->ChannelCount*SoundEffect->SampleCount;
+        s16 *Samples = SoundData->Samples;
+        u32 TotalSampleCount = SoundData->ChannelCount*SoundData->SampleCount;
         
         __m128 *Dest0 = OutputChannel0;
         __m128 *Dest1 = OutputChannel1;
@@ -89,7 +89,7 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
             __m128 D0 = _mm_load_ps((float*)Dest0);
             __m128 D1 = _mm_load_ps((float*)Dest1);
             
-            __m128i SampleIndex = _mm_cvtps_epi32(_mm_sub_ps(SampleP, Half));
+            __m128i SampleIndex = _mm_cvtps_epi32(_mm_sub_ps(SampleP,Half));
             __m128 Fraction = _mm_sub_ps(SampleP, _mm_cvtepi32_ps(SampleIndex));
             
             // NOTE(Tyler): It would work to save this and use it for the next iteration of the loop
@@ -130,7 +130,7 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
         }
         
         Sound->SamplesPlayed += dSample*(f32)SoundBuffer->SamplesPerFrame;
-        if((Sound->SamplesPlayed > SoundEffect->SampleCount) &&
+        if((Sound->SamplesPlayed > SoundData->SampleCount) &&
            !(Sound->Flags & MixerSoundFlag_Loop)){
             if(PreviousSound) PreviousSound->Next = Sound->Next;
             else FirstSound = Sound->Next;
@@ -148,7 +148,7 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
             
             TicketMutexEnd(&FreeSoundMutex);
         }else{
-            if(Sound->SamplesPlayed > SoundEffect->SampleCount){
+            if(Sound->SamplesPlayed > SoundData->SampleCount){
                 Sound->SamplesPlayed = 0;
             }
             PreviousSound = Sound;

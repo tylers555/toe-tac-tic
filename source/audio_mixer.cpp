@@ -2,6 +2,7 @@
 void 
 audio_mixer::Initialize(memory_arena *Arena){
     SoundMemory = MakeArena(Arena, Kilobytes(16));
+    MasterVolume = V2(1);
 }
 
 void
@@ -63,6 +64,9 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
         __m128 Volume0 = _mm_set1_ps(Sound->Volume0);
         __m128 Volume1 = _mm_set1_ps(Sound->Volume1);
         
+        __m128 MasterVolume0 = _mm_set1_ps(MasterVolume.E[0]);
+        __m128 MasterVolume1 = _mm_set1_ps(MasterVolume.E[1]);
+        
         s16 *InputSample = SoundEffect->Samples + SoundEffect->ChannelCount*Sound->SamplesPlayed;
         s16 *InputEnd = SoundEffect->Samples + SoundEffect->SampleCount*2;
         __m128 *Dest0 = OutputChannel0;
@@ -72,8 +76,12 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
             __m128 D0 = _mm_load_ps((float*)Dest0);
             __m128 D1 = _mm_load_ps((float*)Dest1);
             
+            // NOTE(Tyler): It would work to save this and use it for the next iteration of the loop
+            // (NextSampleValueA & NextSampleValueB)
             __m128 SampleValueA;
             __m128 SampleValueB;
+            __m128 NextSampleValueA;
+            __m128 NextSampleValueB;
             if(Sound->Flags & MixerSoundFlag_Loop){
 #define GetNextInputSample ((InputSample > InputEnd) ? *(InputSample = SoundEffect->Samples) : 0, *InputSample++)
                 SampleValueA = _mm_setr_ps(GetNextInputSample,
@@ -84,6 +92,16 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
                                            GetNextInputSample,
                                            GetNextInputSample,
                                            GetNextInputSample);
+                s16 *Temp = InputSample;
+                NextSampleValueA = _mm_setr_ps(GetNextInputSample,
+                                               GetNextInputSample,
+                                               GetNextInputSample,
+                                               GetNextInputSample);
+                NextSampleValueB = _mm_setr_ps(GetNextInputSample,
+                                               GetNextInputSample,
+                                               GetNextInputSample,
+                                               GetNextInputSample);
+                InputSample = Temp;
 #undef GetNextInputSample
             }else{
 #define GetNextInputSample *InputSample++
@@ -95,14 +113,27 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
                                            GetNextInputSample,
                                            GetNextInputSample,
                                            GetNextInputSample);
+                s16 *Temp = InputSample;
+                NextSampleValueA = _mm_setr_ps(GetNextInputSample,
+                                               GetNextInputSample,
+                                               GetNextInputSample,
+                                               GetNextInputSample);
+                NextSampleValueB = _mm_setr_ps(GetNextInputSample,
+                                               GetNextInputSample,
+                                               GetNextInputSample,
+                                               GetNextInputSample);
+                InputSample = Temp;
 #undef GetNextInputSample
             }
             
             __m128 SampleValue0 = _mm_shuffle_ps(SampleValueA, SampleValueB, 0b10001000);
             __m128 SampleValue1 = _mm_shuffle_ps(SampleValueA, SampleValueB, 0b11011101);
             
-            D0 = _mm_add_ps(D0, _mm_mul_ps(Volume0, SampleValue0));
-            D1 = _mm_add_ps(D1, _mm_mul_ps(Volume1, SampleValue1));
+            __m128 NextSampleValue0 = _mm_shuffle_ps(NextSampleValueA, NextSampleValueB, 0b10001000);
+            __m128 NextSampleValue1 = _mm_shuffle_ps(NextSampleValueA, NextSampleValueB, 0b11011101);
+            
+            D0 = _mm_add_ps(D0, _mm_mul_ps(MasterVolume0, _mm_mul_ps(Volume0, SampleValue0)));
+            D1 = _mm_add_ps(D1, _mm_mul_ps(MasterVolume1, _mm_mul_ps(Volume1, SampleValue1)));
             
             _mm_store_ps((float*)Dest0, D0);
             _mm_store_ps((float*)Dest1, D1);

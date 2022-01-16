@@ -27,6 +27,8 @@ struct audio_mixer {
     
     ticket_mutex FreeSoundMutex;
     
+    v2 MasterVolume;
+    
     void PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags=MixerSoundFlag_None, f32 Volume1=1.0f, f32 Volume2=1.0f);
     
     //~

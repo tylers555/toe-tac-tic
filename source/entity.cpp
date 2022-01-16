@@ -342,29 +342,13 @@ TypeName *NewEntity = AllocEntity(ToManager, TypeName); \
 //~ Entity updating and rendering
 
 void
-entity_manager::ProcessEvent(os_event *Event){
-    switch(Event->Kind){
-        case OSEventKind_KeyDown: {
-            switch((u32)Event->Key){
-                case KeyCode_Space: PlayerInput.Jump   = true;     break;
-                case 'X':           PlayerInput.Select = true;     break;
-                case KeyCode_Up:    if(Event->JustDown) PlayerInput.Up    = true; break;
-                case KeyCode_Down:  if(Event->JustDown) PlayerInput.Down  = true; break;
-                case KeyCode_Left:  if(Event->JustDown) PlayerInput.Left  = true; break;
-                case KeyCode_Right: if(Event->JustDown) PlayerInput.Right = true; break;
-            }
-        }break;
-        case OSEventKind_KeyUp: {
-            switch((u32)Event->Key){
-                case KeyCode_Space: PlayerInput.Jump   = false; break;
-                case 'X':           PlayerInput.Select = false; break;
-                case KeyCode_Up:    PlayerInput.Up     = false; break;
-                case KeyCode_Down:  PlayerInput.Down   = false; break;
-                case KeyCode_Left:  PlayerInput.Left   = false; break;
-                case KeyCode_Right: PlayerInput.Right  = false; break;
-            }
-        }break;
-    }
+entity_manager::HandleInput(){
+    PlayerInput.Jump   = OSInput.KeyDown(KeyCode_Space);
+    PlayerInput.Select = OSInput.KeyDown('X');
+    PlayerInput.Up     = OSInput.KeyDown(KeyCode_Up); 
+    PlayerInput.Down   = OSInput.KeyDown(KeyCode_Down);
+    PlayerInput.Left   = OSInput.KeyDown(KeyCode_Left);
+    PlayerInput.Right  = OSInput.KeyDown(KeyCode_Right);
 }
 
 void 

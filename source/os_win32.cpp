@@ -81,6 +81,7 @@ Win32ConvertVKCode(u32 VKCode){
             case VK_OEM_7:      return (os_key_code)'\''; 
         }
     }
+    return KeyCode_NULL;
 }
 
 internal void
@@ -133,11 +134,6 @@ Win32MainWindowProc(HWND Window,
         }break;
         case WM_DESTROY: {
             Running = false;
-        }break;
-        case WM_KILLFOCUS: case WM_SETFOCUS: case WM_ACTIVATE: {
-            u8 KeyStates[256];
-            GetKeyboardState(KeyStates);
-            
         }break;
         default: {
             Result = DefWindowProcA(Window, Message, WParam, LParam);
@@ -555,6 +551,36 @@ WinMain(HINSTANCE Instance,
                 OSInput.MouseP = Win32GetMouseP();
                 OSInput.dTime = TargetSecondsPerFrame;
                 
+                u8 KeyStates[256];
+                GetKeyboardState(KeyStates);
+                for(u32 I=0; I<ArrayCount(KeyStates); I++){
+                    if(I == VK_LBUTTON){
+                        OSInput.MouseState[MouseButton_Left]   = (key_state)((KeyStates[I] & 0x80) ? KeyState_IsDown : KeyState_IsUp);
+                    }else if(I == VK_RBUTTON){
+                        OSInput.MouseState[MouseButton_Right]  = (key_state)((KeyStates[I] & 0x80) ? KeyState_IsDown : KeyState_IsUp);
+                    }else if(I == VK_MBUTTON){
+                        OSInput.MouseState[MouseButton_Middle] = (key_state)((KeyStates[I] & 0x80) ? KeyState_IsDown : KeyState_IsUp);
+                    }else{
+                        os_key_code KeyCode = Win32ConvertVKCode(I);
+                        OSInput.KeyboardState[KeyCode] = (key_state)((KeyStates[I] & 0x80) ? KeyState_IsDown : KeyState_IsUp);
+                        
+                        switch(KeyCode){
+                            case KeyCode_Shift: {
+                                if(KeyStates[I] & 0x80) OSInput.KeyFlags |= KeyFlag_Shift; 
+                                else                    OSInput.KeyFlags &= ~KeyFlag_Shift;
+                            }break;
+                            case KeyCode_Control: {
+                                if(KeyStates[I] & 0x80) OSInput.KeyFlags |= KeyFlag_Control; 
+                                else                    OSInput.KeyFlags &= ~KeyFlag_Control;
+                            }break;
+                            case KeyCode_Alt: {
+                                if(KeyStates[I] & 0x80) OSInput.KeyFlags |= KeyFlag_Alt; 
+                                else                    OSInput.KeyFlags &= ~KeyFlag_Alt;
+                            }break;
+                        }
+                    }
+                }
+                
                 GameUpdateAndRender();
                 
                 //~ Timing
@@ -808,53 +834,7 @@ PollEvents(os_event *Event){
                     }
                 }
                 
-                if(('0' <= VKCode) && (VKCode <= 'Z')) {
-                    Event->Key = (os_key_code)VKCode; 
-                }else{
-                    switch(VKCode){
-                        //~ Special keys
-                        case VK_UP: Event->Key = KeyCode_Up;               break;
-                        case VK_DOWN:      Event->Key = KeyCode_Down;      break;
-                        case VK_LEFT:      Event->Key = KeyCode_Left;      break;
-                        case VK_RIGHT:     Event->Key = KeyCode_Right;     break;
-                        case VK_SPACE:     Event->Key = KeyCode_Space;     break;
-                        case VK_TAB:       Event->Key = KeyCode_Tab;       break;
-                        case VK_CONTROL:   Event->Key = KeyCode_Control;   break;
-                        case VK_SHIFT:     Event->Key = KeyCode_Shift;     break;
-                        case VK_ESCAPE:    Event->Key = KeyCode_Escape;    break;
-                        case VK_BACK:      Event->Key = KeyCode_BackSpace; break;
-                        case VK_DELETE:    Event->Key = KeyCode_Delete;    break;
-                        case VK_RETURN:    Event->Key = KeyCode_Return;    break;
-                        case VK_MENU:      Event->Key = KeyCode_Alt;       break;
-                        case VK_F1:        Event->Key = KeyCode_F1;        break;
-                        case VK_F2:        Event->Key = KeyCode_F2;        break;
-                        case VK_F3:        Event->Key = KeyCode_F3;        break;
-                        case VK_F4:        Event->Key = KeyCode_F4;        break;
-                        case VK_F5:        Event->Key = KeyCode_F5;        break;
-                        case VK_F6:        Event->Key = KeyCode_F6;        break;
-                        case VK_F7:        Event->Key = KeyCode_F7;        break;
-                        case VK_F8:        Event->Key = KeyCode_F8;        break;
-                        case VK_F9:        Event->Key = KeyCode_F9;        break;
-                        case VK_F10:       Event->Key = KeyCode_F10;       break;
-                        case VK_F11:       Event->Key = KeyCode_F11;       break;
-                        case VK_F12:       Event->Key = KeyCode_F12;       break;
-                        
-                        //~ Normal ascii
-                        
-                        case VK_OEM_1:      Event->Key = (os_key_code)';'; break;
-                        case VK_OEM_PLUS:   Event->Key = (os_key_code)'='; break; 
-                        case VK_OEM_COMMA:  Event->Key = (os_key_code)','; break;
-                        case VK_OEM_MINUS:  Event->Key = (os_key_code)'-'; break;
-                        case VK_OEM_PERIOD: Event->Key = (os_key_code)'.'; break;
-                        case VK_OEM_2:      Event->Key = (os_key_code)'/'; break;
-                        case VK_OEM_3:      Event->Key = (os_key_code)'`'; break;
-                        case VK_OEM_4:      Event->Key = (os_key_code)'['; break;
-                        case VK_OEM_5:      Event->Key = (os_key_code)'\\'; break;
-                        case VK_OEM_6:      Event->Key = (os_key_code)']'; break;
-                        case VK_OEM_7:      Event->Key = (os_key_code)'\''; break;
-                    }
-                }
-                
+                Event->Key = Win32ConvertVKCode(VKCode);
                 
                 if(IsDown){
                     Event->Kind = OSEventKind_KeyDown;

@@ -39,11 +39,9 @@ DEBUGRenderOverlay(){
         LayoutString(&Layout, &DebugFont,
                      BLACK, "AudioMixer.FreeSoundCounter: %d", 
                      AudioMixer.FreeSoundCounter);
-#if 0
         LayoutString(&Layout, &DebugFont,
-                     BLACK, "AudioMixer.FreeSoundCounterMixerThread: %d", 
-                     AudioMixer.FreeSoundCounterMixerThread);
-#endif
+                     BLACK, "KeyFlags: %.3b", OSInput.KeyFlags);
+        
     }
     if(DebugConfig.Overlay & DebugOverlay_Profiler){
         LayoutFps(&Layout);

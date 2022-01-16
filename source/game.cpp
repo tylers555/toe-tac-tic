@@ -8,7 +8,6 @@ internal void
 GameProcessInput(){
     os_event Event;
     while(PollEvents(&Event)){
-        EntityManager.ProcessEvent(&Event);
         ProcessDefaultEvent(&Event);
     }
 }
@@ -19,7 +18,7 @@ UpdateAndRenderMainGame(){
     
     GameProcessInput();
     GameProcessHotKeys();
-    
+    EntityManager.HandleInput();
     
     GameRenderer.NewFrame(&TransientStorageArena, OSInput.WindowSize, MakeColor(0.30f, 0.55f, 0.70f));
     GameRenderer.CalculateCameraBounds(CurrentWorld); 

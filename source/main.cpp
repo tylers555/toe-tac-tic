@@ -224,10 +224,6 @@ ProcessDefaultEvent(os_event *Event){
     switch(Event->Kind){
         case OSEventKind_KeyDown: {
             switch((u32)Event->Key){
-                case KeyCode_Shift:   OSInput.KeyFlags |= KeyFlag_Shift;   break;
-                case KeyCode_Control: OSInput.KeyFlags |= KeyFlag_Control; break;
-                case KeyCode_Alt:     OSInput.KeyFlags |= KeyFlag_Alt;     break;
-                
 #if defined(SNAIL_JUMPY_DEBUG_BUILD)
                 case KeyCode_F1: ToggleOverlay(DebugOverlay_Miscellaneous); break;
                 case KeyCode_F2: ToggleOverlay(DebugOverlay_Profiler); break;
@@ -259,22 +255,14 @@ ProcessDefaultEvent(os_event *Event){
             }
             
             OSInput.KeyboardState[Event->Key] |= KeyState_RepeatDown;
-            OSInput.KeyboardState[Event->Key] |= KeyState_IsDown;
             if(Event->JustDown){
                 OSInput.KeyboardState[Event->Key] |= KeyState_JustDown;
             }
         }break;
         case OSEventKind_KeyUp: {
-            switch((u32)Event->Key){
-                case KeyCode_Shift:   OSInput.KeyFlags &= ~KeyFlag_Shift;   break;
-                case KeyCode_Control: OSInput.KeyFlags &= ~KeyFlag_Control; break;
-                case KeyCode_Alt:     OSInput.KeyFlags &= ~KeyFlag_Alt;     break;
-            }
-            
             OSInput.KeyboardState[Event->Key] = KeyState_JustUp;
         }break;
         case OSEventKind_MouseDown: {
-            OSInput.MouseState[Event->Button] |= KeyState_IsDown;
             OSInput.MouseState[Event->Button] |= KeyState_JustDown;
         }break;
         case OSEventKind_MouseUp: {

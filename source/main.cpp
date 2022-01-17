@@ -46,7 +46,7 @@ global world_data *CurrentWorld;
 
 //~ Hotloaded variables file!
 // TODO(Tyler): Load this from a variables file at startup
-global game_mode GameMode = GameMode_Menu;
+global game_mode GameMode = GameMode_MainGame;
 
 //~ Helpers
 internal inline string

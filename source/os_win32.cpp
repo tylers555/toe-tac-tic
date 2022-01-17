@@ -855,8 +855,8 @@ OSProcessInput(){
                 }
                 
                 os_key_code KeyCode = Win32ConvertVKCode(VKCode);
-                
                 if(IsDown){
+                    UIManager.ConstructTextInput(KeyCode);
                     OSInput.KeyboardState[KeyCode] |= KeyState_RepeatDown;
                     if(IsDown != WasDown){
                         OSInput.KeyboardState[KeyCode] |= KeyState_JustDown;

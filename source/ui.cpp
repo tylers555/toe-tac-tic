@@ -326,6 +326,8 @@ ui_manager::EndFrame(){
     
     KeepElementActive = false;
     ValidElement = DefaultElement();
+    
+    OSInput.IsCapturedByUI = BuildTextInputBuffer;
 }
 
 b8
@@ -346,48 +348,29 @@ ui_manager::MouseButtonIsDown(os_mouse_button Button, os_key_flags Flags){
     return(Result);
 }
 
-b8
-ui_manager::ProcessEvent(os_event *Event){
-    b8 Result = false;
-    
-    switch(Event->Kind){
-        case OSEventKind_KeyDown: {
-            if(BuildTextInputBuffer){
-                if(Event->Key < U8_MAX){
-                    char Char = (char)Event->Key;
-                    if(('A' <= Char) && (Char <= 'Z')){
-                        Char += 'a'-'A';
-                    }
-                    if(IsShiftDown){
-                        Char = KEYBOARD_SHIFT_TABLE[Char];
-                    }
-                    Buffer[BufferIndex++] = Char;
-                }else if(Event->Key == KeyCode_Shift){
-                    IsShiftDown = true;
-                }else if(Event->Key == KeyCode_BackSpace){
-                    BackSpaceCount++;
-                }else if(Event->Key == KeyCode_Left){
-                    CursorMove--;
-                }else if(Event->Key == KeyCode_Right){
-                    CursorMove++;
-                }
-                
-                Result = true;
+void
+ui_manager::ConstructTextInput(os_key_code Key){
+    if(BuildTextInputBuffer){
+        if(Key < U8_MAX){
+            char Char = (char)Key;
+            if(('A' <= Char) && (Char <= 'Z')){
+                Char += 'a'-'A';
             }
-        }break;
-        case OSEventKind_KeyUp: {
-            if(BuildTextInputBuffer){
-                if(Event->Key == KeyCode_Shift){
-                    IsShiftDown = false;
-                }else if(Event->Key == KeyCode_Escape){
-                    ResetActiveElement();
-                }
-                Result = true;
+            if(OSInput.KeyFlags & KeyFlag_Shift){
+                Char = KEYBOARD_SHIFT_TABLE[Char];
             }
-        }break;
+            Buffer[BufferIndex++] = Char;
+        }else if(Key == KeyCode_BackSpace){
+            BackSpaceCount++;
+        }else if(Key == KeyCode_Left){
+            CursorMove--;
+        }else if(Key == KeyCode_Right){
+            CursorMove++;
+        }else if(Key == KeyCode_Escape){
+            BuildTextInputBuffer = false;
+            ResetActiveElement();
+        }
     }
-    
-    return(Result);
 }
 
 //~ Editor stuff

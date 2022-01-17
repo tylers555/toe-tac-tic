@@ -363,11 +363,10 @@ entity_manager::UpdateEntities(){
         entity_teleporter *Teleporter = It.Item;
         if(!Teleporter->IsLocked){
             if(Teleporter->IsSelected){
-#if 0
-                if(IsKeyJustPressed(KeyCode_Space)){
-                    ChangeState(GameMode_MainGame, Teleporter->Level);
+                
+                if(Teleporter->IsSelected && PlayerInput.Select){
+                    ChangeState(GameMode_MainGame, String(Teleporter->Level));
                 }
-#endif
                 
                 Teleporter->IsSelected = false;
             }
@@ -463,9 +462,7 @@ entity_manager::RenderEntities(){
             if(World){
                 v2 StringP = Teleporter->P;
                 StringP.Y += 0.5f;
-                f32 Advance = GetStringAdvance(&MainFont, Teleporter->Level);
-                StringP.X -= Advance/2;
-                RenderString(&MainFont, GREEN, StringP, -1.0f, Teleporter->Level);
+                RenderCenteredString(&MainFont, GREEN, StringP, -1.0f, Teleporter->Level);
             }
             RenderRect(Teleporter->Bounds+Teleporter->P, 0.0f, GREEN, GameItem(1));
         }else{
@@ -505,6 +502,12 @@ entity_manager::RenderEntities(){
     FOR_ENTITY_TYPE(this, entity_match){
         entity_match *Entity = It.Item;
         if(Entity->IsSelected){
+            v2 StringP = Entity->P;
+            v2 Size = RectSize(Entity->Bounds);
+            StringP += 0.5f*Size;
+            StringP.Y += 16;
+            StringP = GameRenderer.WorldToScreen(StringP, ScaledItem(1));
+            RenderCenteredString(&DebugFont, GREEN, StringP, -1.0f, "Press X");
             RenderRect(Entity->Bounds+Entity->P, 0.0f, PINK, GameItem(1));
         }else{
             RenderRect(Entity->Bounds+Entity->P, 0.0f, BLUE, GameItem(1));

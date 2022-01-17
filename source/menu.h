@@ -25,6 +25,7 @@ enum menu_flags_ {
     MenuFlag_SetHovered     = (1 << 0),
     MenuFlag_KeyboardMode   = (1 << 1),
     MenuFlag_DidADeactivate = (1 << 2),
+    MenuFlag_ConfirmQuit    = (1 << 3),
 };
 
 struct menu_item_state {

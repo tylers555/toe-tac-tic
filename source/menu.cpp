@@ -13,6 +13,7 @@ MenuChangePage(menu_state *State, menu_page_type NewPage){
     State->Page = NewPage;
     State->SelectedID = 0;
     State->UsingSlider = 0;
+    State->Flags &= ~MenuFlag_ConfirmQuit;
     for(u32 I=0; I<MAX_MENU_ITEMS; I++){
         State->ItemStates[I] = {};
     }
@@ -76,6 +77,12 @@ MenuShouldActivateItem(menu_state *State){
     if(!(State->Flags & MenuFlag_KeyboardMode) && 
        OSInput.MouseJustDown(MouseButton_Left, KeyFlag_Any)) return true;
     b8 Result = OSInput.KeyJustDown(KeyCode_Space, KeyFlag_Any);
+    return Result;
+}
+
+internal inline b8
+MenuPageIsLastSelected(menu_state *State, menu_page *Page){
+    b8 Result = ((s32)(Page->IDCounter-1) == State->SelectedID);
     return Result;
 }
 
@@ -184,11 +191,15 @@ DoMainMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
     }
     if(MenuPageDoText(State, &Page, "Settings")){
         State->LastPage = State->Page;
-        State->Page = MenuPage_Settings;
+        MenuChangePage(State, MenuPage_Settings);
     }
-    if(MenuPageDoText(State, &Page, "Quit")){
+    
+    if(!(State->Flags & MenuFlag_ConfirmQuit) && MenuPageDoText(State, &Page, "Quit")){
+        State->Flags |= MenuFlag_ConfirmQuit;
+    }else if((State->Flags & MenuFlag_ConfirmQuit) && MenuPageDoText(State, &Page, "Are you sure?")){
         OSEndGame();
     }
+    if(!MenuPageIsLastSelected(State, &Page)) State->Flags &= ~MenuFlag_ConfirmQuit;
 }
 
 internal void 
@@ -202,7 +213,7 @@ DoPauseMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
     }
     if(MenuPageDoText(State, &Page, "Settings")){
         State->LastPage = State->Page;
-        State->Page = MenuPage_Settings;
+        MenuChangePage(State, MenuPage_Settings);
     }
     if(MenuPageDoText(State, &Page, "Quit")){
         OSEndGame();

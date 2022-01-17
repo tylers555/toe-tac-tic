@@ -148,6 +148,8 @@ struct state_change_data {
 #include "entity.h"
 #include "world.h"
 #include "audio_mixer.h"
+
+#include "game.h"
 #include "world_editor.h"
 #include "tic_tac_toe.h"
 #include "puzzle_board.h"

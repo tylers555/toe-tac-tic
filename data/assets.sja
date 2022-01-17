@@ -549,13 +549,29 @@
 #                              Sound effects
 # //////////////////////////////////////////////////////////////////////////
 
+: SoundEffect entity_land
+    path "asset_sound_effects/osj/LandFX.wav"
+
+: SoundEffect level_change
+    path "asset_sound_effects/osj/ArenaFX.wav"
+
+: SoundEffect damage
+    path "asset_sound_effects/osj/DeathFX.wav"
+
+: SoundEffect death
+    path "asset_sound_effects/osj/LoseFX.wav"
+
+# //////////////////////////////////////////////////////////////////////////
+#                             Tic Tac Toe Stuff
+# //////////////////////////////////////////////////////////////////////////
+
 : SoundEffect test_music
     # path "asset_sound_effects/osj/Music.wav"
     path "asset_sound_effects/osj_music.wav"
 
 : SoundEffect ttt_place_mark
-    # path "asset_sound_effects/crack_00.wav"
-    path "asset_sound_effects/osj/LandFX.wav"
+    path "asset_sound_effects/crack_00.wav"
+    # path "asset_sound_effects/osj/LandFX.wav"
 
 : SoundEffect ttt_win
     # path "asset_sound_effects/puhp_00.wav"
@@ -564,10 +580,6 @@
 : SoundEffect ttt_lose
     # path "asset_sound_effects/puhp_00.wav"
     path "asset_sound_effects/osj/LoseFX.wav"
-
-# //////////////////////////////////////////////////////////////////////////
-#                             Tic Tac Toe Stuff
-# //////////////////////////////////////////////////////////////////////////
 
 : Tilemap ttt_board_chalk
     path "asset_tilemaps/ttt_board_chalk_16.png"

@@ -128,8 +128,12 @@ entity_manager::DamagePlayer(u32 Damage){
     if(EntityManager.Player->Health <= 0){
         EntityManager.Player->Health = 9;
         Score = 0;
+        
+        asset_sound_effect *Asset = AssetSystem.GetSoundEffect(String("death"));
+        AudioMixer.PlaySound(Asset);
     }
-    
+    asset_sound_effect *Asset = AssetSystem.GetSoundEffect(String("damage"));
+    AudioMixer.PlaySound(Asset);
 }
 
 internal inline void
@@ -253,10 +257,15 @@ PlayerCollisionResponse(physics_update *Update, physics_collision *Collision){
     b8 Result = false;
     
     entity *CollisionEntity = Collision->EntityB;
-    if(!CollisionEntity) return(false);
+    if(CollisionEntity == Player) return false;
     
+    if((Collision->Normal.Y > 0.9f) &&
+       (Player->dP.Y < -55.0f)){
+        asset_sound_effect *Asset = AssetSystem.GetSoundEffect(String("entity_land"));
+        AudioMixer.PlaySound(Asset);
+    }
     
-    return(Result);
+    return Result;
 }
 
 //~
@@ -379,6 +388,8 @@ entity_manager::UpdateEntities(){
         
         if(Entity->IsSelected && PlayerInput.Select){
             ChangeState(GameMode_TicTacToe, String(""));
+            asset_sound_effect *Asset = AssetSystem.GetSoundEffect(String("level_change"));
+            AudioMixer.PlaySound(Asset);
         }
         
         Entity->IsSelected = false;

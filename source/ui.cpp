@@ -327,7 +327,8 @@ ui_manager::EndFrame(){
     KeepElementActive = false;
     ValidElement = DefaultElement();
     
-    OSInput.IsCapturedByUI = BuildTextInputBuffer;
+    if(BuildTextInputBuffer) OSInput.InputFlags |=  OSInputFlag_CapturedByUI;
+    else                     OSInput.InputFlags &= ~OSInputFlag_CapturedByUI;
 }
 
 b8

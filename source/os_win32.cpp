@@ -542,7 +542,6 @@ WinMain(HINSTANCE Instance,
             
             //~ Main loop
             while(Running){
-                
                 OSInput.dTime = TargetSecondsPerFrame;
                 GameUpdateAndRender();
                 
@@ -764,6 +763,7 @@ OSProcessInput(){
         OSInput.MouseState[I] &= ~KeyState_JustUp;
     }
     OSInput.ScrollMovement = 0;
+    OSInput.InputFlags &= ~OSInputFlag_MouseMoved;
     
     //~ Miscellaneous
     // NOTE(Tyler): This is done so that alt-tab does not cause problems, or when a key is pressed
@@ -872,6 +872,7 @@ OSProcessInput(){
             case WM_MBUTTONUP:   OSInput.MouseState[MouseButton_Middle] |= KeyState_JustUp;   break;
             case WM_RBUTTONUP:   OSInput.MouseState[MouseButton_Right]  |= KeyState_JustUp;   break;
             case WM_MOUSEWHEEL:  OSInput.ScrollMovement = GET_WHEEL_DELTA_WPARAM(Message.wParam); break;
+            case WM_MOUSEMOVE:   OSInput.InputFlags |= OSInputFlag_MouseMoved; break;
             default: {
                 DefWindowProcA(Message.hwnd, Message.message, 
                                Message.wParam, Message.lParam);

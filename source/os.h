@@ -201,6 +201,12 @@ enum key_state_ {
     KeyState_IsDown     = (1 << 3),
 };
 
+typedef u8 os_input_flags;
+enum os_input_flags_ {
+    OSInputFlag_CapturedByUI = (1 << 0),
+    OSInputFlag_MouseMoved   = (1 << 1),
+};
+
 struct os_input {
     //~ Console stuff
     os_file *ConsoleOutFile;
@@ -209,8 +215,7 @@ struct os_input {
     //~ Other stuff
     v2 WindowSize;
     f32 dTime;
-    
-    b8 IsCapturedByUI;
+    os_input_flags InputFlags;
     
     //~ Mouse stuff
     v2 MouseP;
@@ -253,7 +258,7 @@ os_input::TestModifier(os_key_flags Flags){
 //~ Keyboard
 inline b8 
 os_input::KeyUp(u32 Key, os_key_flags Flags){
-    if(IsCapturedByUI) return false;
+    if(InputFlags & OSInputFlag_CapturedByUI) return false;
     
     key_state KeyState = KeyboardState[Key];
     b8 Result = !((KeyState & KeyState_IsDown) && TestModifier(Flags));
@@ -263,7 +268,7 @@ os_input::KeyUp(u32 Key, os_key_flags Flags){
 
 inline b8 
 os_input::KeyJustUp(u32 Key, os_key_flags Flags){
-    if(IsCapturedByUI) return false;
+    if(InputFlags & OSInputFlag_CapturedByUI) return false;
     
     key_state KeyState = KeyboardState[Key];
     b8 Result = ((KeyState & KeyState_JustUp) || !TestModifier(Flags));
@@ -273,7 +278,7 @@ os_input::KeyJustUp(u32 Key, os_key_flags Flags){
 
 inline b8 
 os_input::KeyJustDown(u32 Key, os_key_flags Flags){
-    if(IsCapturedByUI) return false;
+    if(InputFlags & OSInputFlag_CapturedByUI) return false;
     
     key_state KeyState = KeyboardState[Key];
     b8 Result = ((KeyState & KeyState_JustDown) && TestModifier(Flags));
@@ -283,7 +288,7 @@ os_input::KeyJustDown(u32 Key, os_key_flags Flags){
 
 inline b8 
 os_input::KeyRepeat(u32 Key, os_key_flags Flags){
-    if(IsCapturedByUI) return false;
+    if(InputFlags & OSInputFlag_CapturedByUI) return false;
     
     key_state KeyState = KeyboardState[Key];
     b8 Result = ((KeyState & KeyState_RepeatDown) && TestModifier(Flags));
@@ -293,7 +298,7 @@ os_input::KeyRepeat(u32 Key, os_key_flags Flags){
 
 inline b8 
 os_input::KeyDown(u32 Key, os_key_flags Flags){
-    if(IsCapturedByUI) return false;
+    if(InputFlags & OSInputFlag_CapturedByUI) return false;
     
     key_state KeyState = KeyboardState[Key];
     b8 Result = ((KeyState & KeyState_IsDown) && TestModifier(Flags));
@@ -305,7 +310,7 @@ os_input::KeyDown(u32 Key, os_key_flags Flags){
 //~ Mouse 
 inline b8 
 os_input::MouseUp(os_mouse_button Button, os_key_flags Flags){
-    if(IsCapturedByUI) return false;
+    if(InputFlags & OSInputFlag_CapturedByUI) return false;
     
     key_state ButtonState = MouseState[Button];
     b8 Result = !((ButtonState & KeyState_IsDown) && TestModifier(Flags));
@@ -315,7 +320,7 @@ os_input::MouseUp(os_mouse_button Button, os_key_flags Flags){
 
 inline b8 
 os_input::MouseDown(os_mouse_button Button, os_key_flags Flags){
-    if(IsCapturedByUI) return false;
+    if(InputFlags & OSInputFlag_CapturedByUI) return false;
     
     key_state ButtonState = MouseState[Button];
     b8 Result = ((ButtonState & KeyState_IsDown) && TestModifier(Flags));
@@ -325,7 +330,7 @@ os_input::MouseDown(os_mouse_button Button, os_key_flags Flags){
 
 inline b8 
 os_input::MouseJustDown(os_mouse_button Button, os_key_flags Flags){
-    if(IsCapturedByUI) return false;
+    if(InputFlags & OSInputFlag_CapturedByUI) return false;
     
     key_state ButtonState = MouseState[Button];
     b8 Result = ((ButtonState & KeyState_JustDown) && TestModifier(Flags));

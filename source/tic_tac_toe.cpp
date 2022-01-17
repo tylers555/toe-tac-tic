@@ -795,7 +795,7 @@ internal void
 UpdateAndRenderTicTacToe(){
     TIMED_FUNCTION();
     
-    b8 LeaveKeyboardMode = true;
+    b8 LeaveKeyboardMode = (OSInput.InputFlags & OSInputFlag_MouseMoved) != 0;
     
     GameRenderer.NewFrame(&TransientStorageArena, OSInput.WindowSize, PINK);
     GameRenderer.SetLightingConditions(WHITE, 1.0f);

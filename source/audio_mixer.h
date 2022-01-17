@@ -3,8 +3,9 @@
 
 typedef u8 mixer_sound_flags;
 enum mixer_sound_flags_ {
-    MixerSoundFlag_None = (0 << 0),
-    MixerSoundFlag_Loop = (1 << 0),
+    MixerSoundFlag_None  = (0 << 0),
+    MixerSoundFlag_Loop  = (1 << 0),
+    MixerSoundFlag_Music = (1 << 1),
 };
 
 struct mixer_sound {
@@ -28,7 +29,8 @@ struct audio_mixer {
     
     ticket_mutex FreeSoundMutex;
     
-    v2 MasterVolume;
+    v2 MusicMasterVolume;
+    v2 SoundEffectMasterVolume;
     
     void PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags=MixerSoundFlag_None, 
                    f32 PlaybackSpeed=1.0f, f32 Volume1=1.0f, f32 Volume2=1.0f);

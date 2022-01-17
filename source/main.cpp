@@ -126,7 +126,7 @@ InitializeGame(){
     AudioMixer.Initialize(&PermanentStorageArena);
     
     AssetSystem.LoadAssetFile(ASSET_FILE_PATH);
-    AudioMixer.PlaySound(AssetSystem.GetSoundEffect(String("test_music")), MixerSoundFlag_Loop, 1.0f);
+    AudioMixer.PlaySound(AssetSystem.GetSoundEffect(String("test_music")), MixerSoundFlag_Music|MixerSoundFlag_Loop, 1.0f);
 }
 
 //~

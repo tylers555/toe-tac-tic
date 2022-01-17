@@ -2,7 +2,7 @@
 void 
 audio_mixer::Initialize(memory_arena *Arena){
     SoundMemory = MakeArena(Arena, Kilobytes(16));
-    MasterVolume = V2(1);
+    MusicMasterVolume = SoundEffectMasterVolume = V2(1);
 }
 
 void
@@ -68,6 +68,8 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
         u32 ChunksToWrite = Minimum(MaxChunksToWrite, RemainingChunks);
         __m128 Volume0 = _mm_set1_ps(Sound->Volume0);
         __m128 Volume1 = _mm_set1_ps(Sound->Volume1);
+        
+        v2 MasterVolume = (Sound->Flags & MixerSoundFlag_Music) ? MusicMasterVolume : SoundEffectMasterVolume;
         
         __m128 MasterVolume0 = _mm_set1_ps(MasterVolume.E[0]);
         __m128 MasterVolume1 = _mm_set1_ps(MasterVolume.E[1]);

@@ -121,10 +121,11 @@ MenuPageDoSlider(menu_state *State, menu_page *Page, const char *Name, f32 Curre
     f32 EffectiveWidth = Width-CursorSize.X;
     f32 Padding = 20;
     
+    
     v2 P = Page->P;
-    P.X -= 0.5f*(StringAdvance+Padding+Width);
-    RenderString(Page->Font, WHITE, P, 0.0f, Name);
-    P.X += StringAdvance + Padding + 0.5f*CursorSize.Width;
+    P.X -= (StringAdvance+Padding);
+    RenderString(Page->Font, MENU_BASE_COLOR, P, 0.0f, Name);
+    P.X += (StringAdvance+Padding);
     P.Y += -Page->Font->Descent;
     
     v2 CursorBaseP = P;
@@ -268,7 +269,8 @@ DoSettingsMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
     menu_page Page = MakeMenuPage(ItemFont, P, YAdvance);
     MenuFixSelected(State, 2);
     
-    AudioMixer.MasterVolume = V2(MenuPageDoSlider(State, &Page, "Volume", AudioMixer.MasterVolume.E[0]));
+    AudioMixer.MusicMasterVolume = V2(MenuPageDoSlider(State, &Page, "Music volume", AudioMixer.MusicMasterVolume.E[0]));
+    AudioMixer.SoundEffectMasterVolume = V2(MenuPageDoSlider(State, &Page, "Sound effect volume", AudioMixer.SoundEffectMasterVolume.E[0]));
     if(MenuPageDoText(State, &Page, "Back") || 
        (OSInput.KeyJustDown(PAUSE_KEY, KeyFlag_Any) && !(State->Flags & MenuFlag_DidADeactivate))){
         MenuChangePage(State, State->LastPage);

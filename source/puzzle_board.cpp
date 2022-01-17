@@ -113,17 +113,7 @@ GameBoardRender(tic_tac_toe_state *State, game_board *Board, v2 P, f32 Padding, 
 
 internal void
 UpdateAndRenderPuzzle(){
-    b8 LeaveKeyboardMode = false;
-    os_event Event;
-    while(PollEvents(&Event)){
-        if(UIManager.ProcessEvent(&Event)) continue;
-        ProcessDefaultEvent(&Event);
-        switch(Event.Kind){
-            case OSEventKind_MouseMove: {
-                LeaveKeyboardMode = true;
-            }break;
-        }
-    }
+    b8 LeaveKeyboardMode = true;
     
     GameRenderer.NewFrame(&TransientStorageArena, OSInput.WindowSize, PINK);
     GameRenderer.SetLightingConditions(WHITE, 1.0f);

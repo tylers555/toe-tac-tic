@@ -351,7 +351,7 @@ struct os_event {
     };
 };
 
-internal b8 PollEvents(os_event *Event);
+internal void OSProcessInput();
 
 //~ Sound buffer
 struct os_sound_buffer {

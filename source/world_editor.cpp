@@ -1227,15 +1227,6 @@ world_editor::DoDeleteEntity(entity *Entity, b8 Special){
 //~ Input
 
 void
-world_editor::ProcessInput(){
-    os_event Event;
-    while(PollEvents(&Event)){
-        if(UIManager.ProcessEvent(&Event)) continue;
-        ProcessDefaultEvent(&Event);
-    }
-}
-
-void
 world_editor::ProcessHotKeys(){
     if(OSInput.KeyJustDown(KeyCode_Tab)) UIManager.HideWindows = !UIManager.HideWindows; 
     if(OSInput.KeyJustDown('E', KeyFlag_Control)) ToggleWorldEditor(); 
@@ -1347,8 +1338,6 @@ world_editor::UpdateAndRender(){
     }
     
     //~ Prep
-    ProcessInput();
-    
     GameRenderer.NewFrame(&TransientStorageArena, OSInput.WindowSize, MakeColor(0.30f, 0.55f, 0.70f));
     GameRenderer.CalculateCameraBounds(World);
     GameRenderer.SetCameraSettings(0.3f/OSInput.dTime);

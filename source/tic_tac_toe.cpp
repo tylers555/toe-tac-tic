@@ -795,17 +795,7 @@ internal void
 UpdateAndRenderTicTacToe(){
     TIMED_FUNCTION();
     
-    b8 LeaveKeyboardMode = false;
-    os_event Event;
-    while(PollEvents(&Event)){
-        if(UIManager.ProcessEvent(&Event)) continue;
-        ProcessDefaultEvent(&Event);
-        switch(Event.Kind){
-            case OSEventKind_MouseMove: {
-                LeaveKeyboardMode = true;
-            }break;
-        }
-    }
+    b8 LeaveKeyboardMode = true;
     
     GameRenderer.NewFrame(&TransientStorageArena, OSInput.WindowSize, PINK);
     GameRenderer.SetLightingConditions(WHITE, 1.0f);

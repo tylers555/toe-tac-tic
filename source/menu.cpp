@@ -84,7 +84,7 @@ MenuPageDoSlider(menu_page *Page, const char *Name, f32 CurrentValue){
         Color = RED;
     }else if(!MenuState.UsingSlider && IsPointInRect(OSInput.MouseP, LineRect)){
         Color = BLUE;
-        if(OSInput.MouseJustDown(MouseButton_Left, KeyFlag_Any)){
+        if(OSInput.MouseDown(MouseButton_Left, KeyFlag_Any)){
             MenuState.UsingSlider = Name;
             Color = RED;
         }
@@ -146,9 +146,6 @@ DoSettingsMenu(font *ItemFont, v2 P, f32 YAdvance){
 internal void
 UpdateAndRenderMenu(){
     os_event Event;
-    while(PollEvents(&Event)){
-        ProcessDefaultEvent(&Event);
-    }
     
     GameRenderer.NewFrame(&TransientStorageArena, OSInput.WindowSize, MENU_BACKGROUND_COLOR);
     GameRenderer.SetLightingConditions(WHITE, 1.0f);

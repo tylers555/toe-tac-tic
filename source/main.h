@@ -155,7 +155,6 @@ struct state_change_data {
 
 //~ Forward declarations
 internal inline void ChangeState(game_mode NewMode, string NewLevel);
-internal inline void ProcessDefaultEvent(os_event *Event);
 
 internal b8 PlayerCollisionResponse(physics_update *Update, physics_collision *Collision);
 

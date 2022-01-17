@@ -135,6 +135,7 @@ Win32MainWindowProc(HWND Window,
         case WM_DESTROY: {
             Running = false;
         }break;
+        case WM_SYSKEYDOWN: Assert(0); break;
         default: {
             Result = DefWindowProcA(Window, Message, WParam, LParam);
         }break;
@@ -541,46 +542,8 @@ WinMain(HINSTANCE Instance,
             
             //~ Main loop
             while(Running){
-                RECT ClientRect;
-                GetClientRect(MainWindow, &ClientRect);
-                OSInput.WindowSize = {
-                    (f32)(ClientRect.right - ClientRect.left),
-                    (f32)(ClientRect.bottom - ClientRect.top),
-                };
-                OSInput.LastMouseP = OSInput.MouseP;
-                OSInput.MouseP = Win32GetMouseP();
+                
                 OSInput.dTime = TargetSecondsPerFrame;
-                
-                u8 KeyStates[256];
-                GetKeyboardState(KeyStates);
-                for(u32 I=0; I<ArrayCount(KeyStates); I++){
-                    if(I == VK_LBUTTON){
-                        OSInput.MouseState[MouseButton_Left]   = (key_state)((KeyStates[I] & 0x80) ? KeyState_IsDown : KeyState_IsUp);
-                    }else if(I == VK_RBUTTON){
-                        OSInput.MouseState[MouseButton_Right]  = (key_state)((KeyStates[I] & 0x80) ? KeyState_IsDown : KeyState_IsUp);
-                    }else if(I == VK_MBUTTON){
-                        OSInput.MouseState[MouseButton_Middle] = (key_state)((KeyStates[I] & 0x80) ? KeyState_IsDown : KeyState_IsUp);
-                    }else{
-                        os_key_code KeyCode = Win32ConvertVKCode(I);
-                        OSInput.KeyboardState[KeyCode] = (key_state)((KeyStates[I] & 0x80) ? KeyState_IsDown : KeyState_IsUp);
-                        
-                        switch(KeyCode){
-                            case KeyCode_Shift: {
-                                if(KeyStates[I] & 0x80) OSInput.KeyFlags |= KeyFlag_Shift; 
-                                else                    OSInput.KeyFlags &= ~KeyFlag_Shift;
-                            }break;
-                            case KeyCode_Control: {
-                                if(KeyStates[I] & 0x80) OSInput.KeyFlags |= KeyFlag_Control; 
-                                else                    OSInput.KeyFlags &= ~KeyFlag_Control;
-                            }break;
-                            case KeyCode_Alt: {
-                                if(KeyStates[I] & 0x80) OSInput.KeyFlags |= KeyFlag_Alt; 
-                                else                    OSInput.KeyFlags &= ~KeyFlag_Alt;
-                            }break;
-                        }
-                    }
-                }
-                
                 GameUpdateAndRender();
                 
                 //~ Timing
@@ -783,15 +746,73 @@ WriteToDebugConsole(os_file *Output, const char *Format, ...){
     va_end(VarArgs);
 }
 
-internal b8
-PollEvents(os_event *Event){
-    *Event = {};
+internal void
+OSProcessInput(){
+    TIMED_FUNCTION();
     
+    //~ Reset
+    for(u32 I=0; I<KeyCode_TOTAL; I++){
+        key_state State = OSInput.KeyboardState[I];
+        OSInput.KeyboardState[I] &= ~KeyState_JustDown;
+        OSInput.KeyboardState[I] &= ~KeyState_RepeatDown;
+        OSInput.KeyboardState[I] &= ~KeyState_JustUp;
+    }
+    
+    for(u32 I=0; I<MouseButton_TOTAL; I++){
+        key_state State = OSInput.MouseState[I];
+        OSInput.MouseState[I] &= ~KeyState_JustDown;
+        OSInput.MouseState[I] &= ~KeyState_JustUp;
+    }
+    OSInput.ScrollMovement = 0;
+    
+    //~ Miscellaneous
+    // NOTE(Tyler): This is done so that alt-tab does not cause problems, or when a key is pressed
+    // and then unpressed when the window loses focus
+    RECT ClientRect;
+    GetClientRect(MainWindow, &ClientRect);
+    OSInput.WindowSize = {
+        (f32)(ClientRect.right - ClientRect.left),
+        (f32)(ClientRect.bottom - ClientRect.top),
+    };
+    OSInput.LastMouseP = OSInput.MouseP;
+    OSInput.MouseP = Win32GetMouseP();
+    
+    u8 KeyStates[256];
+    GetKeyboardState(KeyStates);
+    for(u32 I=0; I<ArrayCount(KeyStates); I++){
+        if(I == VK_LBUTTON){
+            OSInput.MouseState[MouseButton_Left]   = (key_state)((KeyStates[I] & 0x80) ? KeyState_IsDown : KeyState_IsUp);
+        }else if(I == VK_RBUTTON){
+            OSInput.MouseState[MouseButton_Right]  = (key_state)((KeyStates[I] & 0x80) ? KeyState_IsDown : KeyState_IsUp);
+        }else if(I == VK_MBUTTON){
+            OSInput.MouseState[MouseButton_Middle] = (key_state)((KeyStates[I] & 0x80) ? KeyState_IsDown : KeyState_IsUp);
+        }else{
+            os_key_code KeyCode = Win32ConvertVKCode(I);
+            OSInput.KeyboardState[KeyCode] = (key_state)((KeyStates[I] & 0x80) ? KeyState_IsDown : KeyState_IsUp);
+            
+            switch(KeyCode){
+                case KeyCode_Shift: {
+                    if(KeyStates[I] & 0x80) OSInput.KeyFlags |= KeyFlag_Shift; 
+                    else                    OSInput.KeyFlags &= ~KeyFlag_Shift;
+                }break;
+                case KeyCode_Control: {
+                    if(KeyStates[I] & 0x80) OSInput.KeyFlags |= KeyFlag_Control; 
+                    else                    OSInput.KeyFlags &= ~KeyFlag_Control;
+                }break;
+                case KeyCode_Alt: {
+                    if(KeyStates[I] & 0x80) OSInput.KeyFlags |= KeyFlag_Alt; 
+                    else                    OSInput.KeyFlags &= ~KeyFlag_Alt;
+                }break;
+            }
+        }
+    }
+    
+    //~ Event processing
+    
+    b8 Result = true;
     MSG Message;
-    b8 Result = false;
     while(true){
-        Result = (b8)PeekMessage(&Message, 0, 0, 0, PM_REMOVE);
-        if(!Result) break;
+        if(!PeekMessage(&Message, 0, 0, 0, PM_REMOVE)) break;
         
         // TODO(Tyler): This may not actually be needed here
         if(Message.message == WM_QUIT){
@@ -823,8 +844,7 @@ PollEvents(os_event *Event){
                 
                 b8 WasDown = ((Message.lParam & (1 << 30)) != 0);
                 b8 IsDown = ((Message.lParam & (1UL << 31)) == 0);
-                if(WasDown != IsDown){
-                    Event->JustDown = true;
+                if(IsDown != WasDown){
                     if(IsDown){
                         if(VKCode == VK_F11){
                             ToggleFullscreen(MainWindow);
@@ -834,54 +854,24 @@ PollEvents(os_event *Event){
                     }
                 }
                 
-                Event->Key = Win32ConvertVKCode(VKCode);
+                os_key_code KeyCode = Win32ConvertVKCode(VKCode);
                 
                 if(IsDown){
-                    Event->Kind = OSEventKind_KeyDown;
+                    OSInput.KeyboardState[KeyCode] |= KeyState_RepeatDown;
+                    if(IsDown != WasDown){
+                        OSInput.KeyboardState[KeyCode] |= KeyState_JustDown;
+                    }
                 }else{
-                    Event->Kind = OSEventKind_KeyUp;
+                    OSInput.KeyboardState[KeyCode] = KeyState_JustUp;
                 }
             }break;
-            {
-                case WM_LBUTTONDOWN: {
-                    Event->Button = MouseButton_Left;
-                }goto process_mouse_down;
-                case WM_MBUTTONDOWN: {
-                    Event->Button = MouseButton_Middle;
-                }goto process_mouse_down;
-                case WM_RBUTTONDOWN: {
-                    Event->Button = MouseButton_Right;
-                }goto process_mouse_down;
-                
-                process_mouse_down:;
-                Event->Kind = OSEventKind_MouseDown;
-                
-                Event->MouseP = Win32GetMouseP();
-            }break;
-            {
-                case WM_LBUTTONUP: {
-                    Event->Button = MouseButton_Left;
-                }goto process_mouse_up;
-                case WM_MBUTTONUP: {
-                    Event->Button = MouseButton_Middle;
-                }goto process_mouse_up;
-                case WM_RBUTTONUP: {
-                    Event->Button = MouseButton_Right;
-                }goto process_mouse_up;
-                
-                process_mouse_up:;
-                Event->Kind = OSEventKind_MouseUp;
-                
-                Event->MouseP = Win32GetMouseP();
-            }break;
-            case WM_MOUSEMOVE: {
-                Event->Kind = OSEventKind_MouseMove;
-                Event->MouseP = Win32GetMouseP();
-            }break;
-            case WM_MOUSEWHEEL: {
-                Event->Kind = OSEventKind_MouseWheelMove;
-                Event->WheelMovement = GET_WHEEL_DELTA_WPARAM(Message.wParam);
-            }break;
+            case WM_LBUTTONDOWN: OSInput.MouseState[MouseButton_Left]   |= KeyState_JustDown; break;
+            case WM_MBUTTONDOWN: OSInput.MouseState[MouseButton_Middle] |= KeyState_JustDown; break;
+            case WM_RBUTTONDOWN: OSInput.MouseState[MouseButton_Right]  |= KeyState_JustDown; break;
+            case WM_LBUTTONUP:   OSInput.MouseState[MouseButton_Left]   |= KeyState_JustUp;   break;
+            case WM_MBUTTONUP:   OSInput.MouseState[MouseButton_Middle] |= KeyState_JustUp;   break;
+            case WM_RBUTTONUP:   OSInput.MouseState[MouseButton_Right]  |= KeyState_JustUp;   break;
+            case WM_MOUSEWHEEL:  OSInput.ScrollMovement = GET_WHEEL_DELTA_WPARAM(Message.wParam); break;
             default: {
                 DefWindowProcA(Message.hwnd, Message.message, 
                                Message.wParam, Message.lParam);
@@ -890,7 +880,6 @@ PollEvents(os_event *Event){
         
         break;
     }
-    return(Result);
 }
 
 //~ Miscellaneous

@@ -37,10 +37,10 @@ DEBUGRenderOverlay(){
                          Player->TargetdP.X, Player->TargetdP.Y);
         }
         LayoutString(&Layout, &DebugFont,
-                     BLACK, "AudioMixer.FreeSoundCounter: %d", 
-                     AudioMixer.FreeSoundCounter);
-        LayoutString(&Layout, &DebugFont,
                      BLACK, "KeyFlags: %.3b", OSInput.KeyFlags);
+        
+        LayoutString(&Layout, &DebugFont,
+                     BLACK, "MouseState: %.4b", OSInput.MouseState[MouseButton_Left]);
         
     }
     if(DebugConfig.Overlay & DebugOverlay_Profiler){

@@ -127,8 +127,39 @@ InitializeGame(){
     AudioMixer.PlaySound(AssetSystem.GetSoundEffect(String("test_music")), MixerSoundFlag_Loop, 1.0f);
 }
 
+//~
+
+internal inline void
+ToggleOverlay(_debug_overlay_flags Overlay){
+    if(!(DebugConfig.Overlay & Overlay)) DebugConfig.Overlay |= Overlay;
+    else DebugConfig.Overlay &= ~Overlay;
+}
+
+internal void 
+DoDefaultHotkeys(){
+#if defined(SNAIL_JUMPY_DEBUG_BUILD)
+    if(OSInput.KeyJustDown(KeyCode_F1, KeyFlag_Any)) ToggleOverlay(DebugOverlay_Miscellaneous);
+    if(OSInput.KeyJustDown(KeyCode_F2, KeyFlag_Any)) ToggleOverlay(DebugOverlay_Profiler);
+    if(OSInput.KeyJustDown(KeyCode_F3, KeyFlag_Any)) ToggleOverlay(DebugOverlay_Boundaries);
+    if(OSInput.KeyJustDown(KeyCode_F8, KeyFlag_Any)) ToggleFlag(&PhysicsDebugger.Flags, PhysicsDebuggerFlags_StepPhysics);
+    
+    if(OSInput.KeyJustDown(KeyCode_F9, KeyFlag_Any) && (PhysicsDebugger.Paused > 0))
+        PhysicsDebugger.Paused--; 
+    if(OSInput.KeyJustDown(KeyCode_F10, KeyFlag_Any)) PhysicsDebugger.Paused++;
+    
+    if(PhysicsDebugger.Flags & PhysicsDebuggerFlags_StepPhysics){
+        if(OSInput.KeyJustDown('J', KeyFlag_Any) && (PhysicsDebugger.Scale > 0.1f)) PhysicsDebugger.Scale /= 1.01f;
+        if(OSInput.KeyJustDown('K', KeyFlag_Any))                                   PhysicsDebugger.Scale *= 1.01f;
+    }
+#endif
+    
+    if(OSInput.KeyJustDown(KeyCode_Escape, KeyFlag_Any) && (GameMode != GameMode_Menu)) OpenPauseMenu();
+}
+
 internal void
 GameUpdateAndRender(){
+    OSProcessInput();
+    
     //~ Prepare for next frame
     ProfileData.CurrentBlockIndex = 0;
     ArenaClear(&TransientStorageArena);
@@ -137,6 +168,8 @@ GameUpdateAndRender(){
     //~ Do next frame
     TIMED_FUNCTION();
     AssetSystem.LoadAssetFile(ASSET_FILE_PATH);
+    
+    DoDefaultHotkeys();
     
     switch(GameMode){
         case GameMode_Debug: {
@@ -164,24 +197,6 @@ GameUpdateAndRender(){
     RendererRenderAll(&GameRenderer);
     
     Counter += OSInput.dTime;
-    
-    //~ Reset OS input
-    {
-        for(u32 I=0; I<KeyCode_TOTAL; I++){
-            key_state State = OSInput.KeyboardState[I];
-            OSInput.KeyboardState[I] &= ~KeyState_JustDown;
-            OSInput.KeyboardState[I] &= ~KeyState_RepeatDown;
-            OSInput.KeyboardState[I] &= ~KeyState_JustUp;
-        }
-        
-        for(u32 I=0; I<MouseButton_TOTAL; I++){
-            key_state State = OSInput.MouseState[I];
-            OSInput.MouseState[I] &= ~KeyState_JustDown;
-            OSInput.MouseState[I] &= ~KeyState_JustUp;
-        }
-        
-        OSInput.ScrollMovement = 0;
-    }
     
     //~ Other
     if(StateChangeData.DidChange){
@@ -211,65 +226,4 @@ ChangeState(game_mode NewMode, string NewLevel){
     StateChangeData.DidChange = true;
     StateChangeData.NewMode = NewMode;
     StateChangeData.NewLevel = Strings.GetString(NewLevel);
-}
-
-internal inline void
-ToggleOverlay(_debug_overlay_flags Overlay){
-    if(!(DebugConfig.Overlay & Overlay)) DebugConfig.Overlay |= Overlay;
-    else DebugConfig.Overlay &= ~Overlay;
-}
-
-internal void
-ProcessDefaultEvent(os_event *Event){
-    switch(Event->Kind){
-        case OSEventKind_KeyDown: {
-            switch((u32)Event->Key){
-#if defined(SNAIL_JUMPY_DEBUG_BUILD)
-                case KeyCode_F1: ToggleOverlay(DebugOverlay_Miscellaneous); break;
-                case KeyCode_F2: ToggleOverlay(DebugOverlay_Profiler); break;
-                case KeyCode_F3: ToggleOverlay(DebugOverlay_Boundaries); break;
-                case KeyCode_F8: {
-                    if(PhysicsDebugger.Flags & PhysicsDebuggerFlags_StepPhysics){
-                        PhysicsDebugger.Flags &= ~PhysicsDebuggerFlags_StepPhysics;
-                    }else{
-                        PhysicsDebugger.Flags |= PhysicsDebuggerFlags_StepPhysics;
-                    } 
-                }break;
-                case KeyCode_F9: if(PhysicsDebugger.Paused > 0) {
-                    PhysicsDebugger.Paused--; 
-                } break;
-                case KeyCode_F10: PhysicsDebugger.Paused++; break;
-                
-                case 'J': if(PhysicsDebugger.Flags & PhysicsDebuggerFlags_StepPhysics){
-                    if(PhysicsDebugger.Scale > 0.1f){
-                        PhysicsDebugger.Scale /= 1.01f;
-                    }
-                } break;
-                case 'K': if(PhysicsDebugger.Flags & PhysicsDebuggerFlags_StepPhysics){
-                    PhysicsDebugger.Scale *= 1.01f;
-                } break;
-#endif
-                case KeyCode_Escape: {
-                    if(GameMode != GameMode_Menu) OpenPauseMenu();
-                }break;
-            }
-            
-            OSInput.KeyboardState[Event->Key] |= KeyState_RepeatDown;
-            if(Event->JustDown){
-                OSInput.KeyboardState[Event->Key] |= KeyState_JustDown;
-            }
-        }break;
-        case OSEventKind_KeyUp: {
-            OSInput.KeyboardState[Event->Key] = KeyState_JustUp;
-        }break;
-        case OSEventKind_MouseDown: {
-            OSInput.MouseState[Event->Button] |= KeyState_JustDown;
-        }break;
-        case OSEventKind_MouseUp: {
-            OSInput.MouseState[Event->Button] = KeyState_JustUp;
-        }break;
-        case OSEventKind_MouseWheelMove: {
-            OSInput.ScrollMovement = Event->WheelMovement;
-        }break;
-    }
 }

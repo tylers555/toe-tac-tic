@@ -5,18 +5,9 @@ GameProcessHotKeys(){
 }
 
 internal void
-GameProcessInput(){
-    os_event Event;
-    while(PollEvents(&Event)){
-        ProcessDefaultEvent(&Event);
-    }
-}
-
-internal void
 UpdateAndRenderMainGame(){
     TIMED_FUNCTION();
     
-    GameProcessInput();
     GameProcessHotKeys();
     EntityManager.HandleInput();
     

@@ -750,6 +750,7 @@ OSProcessInput(){
     TIMED_FUNCTION();
     
     //~ Reset
+#if 0
     for(u32 I=0; I<KeyCode_TOTAL; I++){
         key_state State = OSInput.KeyboardState[I];
         OSInput.KeyboardState[I] &= ~KeyState_JustDown;
@@ -762,6 +763,7 @@ OSProcessInput(){
         OSInput.MouseState[I] &= ~KeyState_JustDown;
         OSInput.MouseState[I] &= ~KeyState_JustUp;
     }
+#endif
     OSInput.ScrollMovement = 0;
     OSInput.InputFlags &= ~OSInputFlag_MouseMoved;
     
@@ -858,6 +860,7 @@ OSProcessInput(){
                 if(IsDown){
                     UIManager.ConstructTextInput(KeyCode);
                     OSInput.KeyboardState[KeyCode] |= KeyState_RepeatDown;
+                    OSInput.KeyboardState[KeyCode] |= KeyState_IsDown;
                     if(IsDown != WasDown){
                         OSInput.KeyboardState[KeyCode] |= KeyState_JustDown;
                     }
@@ -865,9 +868,9 @@ OSProcessInput(){
                     OSInput.KeyboardState[KeyCode] = KeyState_JustUp;
                 }
             }break;
-            case WM_LBUTTONDOWN: OSInput.MouseState[MouseButton_Left]   |= KeyState_JustDown; break;
-            case WM_MBUTTONDOWN: OSInput.MouseState[MouseButton_Middle] |= KeyState_JustDown; break;
-            case WM_RBUTTONDOWN: OSInput.MouseState[MouseButton_Right]  |= KeyState_JustDown; break;
+            case WM_LBUTTONDOWN: OSInput.MouseState[MouseButton_Left]   |= KeyState_JustDown|KeyState_IsDown; break;
+            case WM_MBUTTONDOWN: OSInput.MouseState[MouseButton_Middle] |= KeyState_JustDown|KeyState_IsDown; break;
+            case WM_RBUTTONDOWN: OSInput.MouseState[MouseButton_Right]  |= KeyState_JustDown|KeyState_IsDown; break;
             case WM_LBUTTONUP:   OSInput.MouseState[MouseButton_Left]   |= KeyState_JustUp;   break;
             case WM_MBUTTONUP:   OSInput.MouseState[MouseButton_Middle] |= KeyState_JustUp;   break;
             case WM_RBUTTONUP:   OSInput.MouseState[MouseButton_Right]  |= KeyState_JustUp;   break;

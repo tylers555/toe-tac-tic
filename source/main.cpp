@@ -197,6 +197,7 @@ GameUpdateAndRender(){
     RendererRenderAll(&GameRenderer);
     
     Counter += OSInput.dTime;
+    FrameCounter++;
     
     //~ Other
     if(StateChangeData.DidChange){

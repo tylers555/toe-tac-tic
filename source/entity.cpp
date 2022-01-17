@@ -343,7 +343,8 @@ TypeName *NewEntity = AllocEntity(ToManager, TypeName); \
 
 void
 entity_manager::HandleInput(){
-    PlayerInput.Jump   = OSInput.KeyDown(KeyCode_Space);
+    if(OSInput.KeyJustDown(KeyCode_Space)) PlayerInput.Jump = true;
+    PlayerInput.Jump   = (PlayerInput.Jump && OSInput.KeyDown(KeyCode_Space));
     PlayerInput.Select = OSInput.KeyJustDown('X');
     PlayerInput.Up     = OSInput.KeyDown(KeyCode_Up); 
     PlayerInput.Down   = OSInput.KeyDown(KeyCode_Down);

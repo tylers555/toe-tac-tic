@@ -4,12 +4,15 @@ internal inline void
 OpenPauseMenu(){
     MenuState.LastGameMode = GameMode;
     MenuState.Page = MenuPage_Pause;
+    MenuState.Flags |= MenuFlag_KeyboardMode;
     ChangeState(GameMode_Menu, MakeString(0));
 }
 
 internal inline void
 MenuChangePage(menu_state *State, menu_page_type NewPage){
     State->Page = NewPage;
+    State->SelectedID = 0;
+    State->UsingSlider = 0;
     for(u32 I=0; I<MAX_MENU_ITEMS; I++){
         State->ItemStates[I] = {};
     }
@@ -28,10 +31,17 @@ MakeMenuPage(font *Font, v2 P, f32 YAdvance){
 }
 
 internal inline menu_item_state *
-MenuPageBeginItem(menu_state *State, menu_page *Page){
+MenuPageGetItem(menu_state *State, menu_page *Page){
     Assert(Page->IDCounter < MAX_MENU_ITEMS);
-    menu_item_state *Result = &State->ItemStates[Page->IDCounter++];
+    menu_item_state *Result = &State->ItemStates[Page->IDCounter];
+    Result->ID = Page->IDCounter++;
     return Result;
+}
+
+internal inline void
+MenuFixSelected(menu_state *State, u32 TotalItems){
+    if(State->SelectedID < 0) State->SelectedID += TotalItems;
+    State->SelectedID %= TotalItems;
 }
 
 internal inline color
@@ -50,17 +60,37 @@ MenuItemGetColor(menu_item_state *Item, color BaseColor, b8 Hovered, b8 Active){
 }
 
 internal inline b8
+MenuShouldHoverItem(menu_state *State, menu_item_state *Item, rect R){
+    if(State->UsingSlider) return false;
+    b8 KeyboardMode = (State->Flags & MenuFlag_KeyboardMode) != 0;
+    if(!KeyboardMode && IsPointInRect(OSInput.MouseP, R)){
+        MenuState.SelectedID = Item->ID;
+        return true;
+    }
+    if(KeyboardMode  && (State->SelectedID == (s32)Item->ID)) return true;
+    return false;
+}
+
+internal inline b8
+MenuShouldActivateItem(menu_state *State){
+    if(!(State->Flags & MenuFlag_KeyboardMode) && 
+       OSInput.MouseJustDown(MouseButton_Left, KeyFlag_Any)) return true;
+    b8 Result = OSInput.KeyJustDown(KeyCode_Space, KeyFlag_Any);
+    return Result;
+}
+
+internal inline b8
 MenuPageDoText(menu_state *State, menu_page *Page, const char *Name){
     b8 Result = false;
     
-    menu_item_state *Item = MenuPageBeginItem(State, Page);
-    if(IsPointInRect(OSInput.MouseP, Page->R)){
-        if(OSInput.MouseJustDown(MouseButton_Left, KeyFlag_Any)){
+    menu_item_state *Item = MenuPageGetItem(State, Page);
+    if(MenuShouldHoverItem(State, Item, Page->R)){
+        if(MenuShouldActivateItem(State)){
             Result = true;
         }
         
         State->Hovered = Name;
-        State->SetHovered = true;
+        State->Flags |= MenuFlag_SetHovered;
     }
     
     color Color = MenuItemGetColor(Item, MENU_BASE_COLOR, (State->Hovered==Name), false);
@@ -101,18 +131,34 @@ MenuPageDoSlider(menu_state *State, menu_page *Page, const char *Name, f32 Curre
     rect LineRect = SizeRect(V2(P.X, P.Y-0.5f*Size), V2(Width, Size));
     RenderRoundedRect(LineRect, 0.0f, 0.5f*Size, MENU_BASE_COLOR, UIItem(0));
     
-    menu_item_state *Item = MenuPageBeginItem(State, Page);
+    menu_item_state *Item = MenuPageGetItem(State, Page);
     if(State->UsingSlider == Name){
-        Result = (OSInput.MouseP.X - CursorBaseP.X) / EffectiveWidth;
+        if(!(State->Flags & MenuFlag_KeyboardMode)){
+            Result = (OSInput.MouseP.X - CursorBaseP.X) / EffectiveWidth;
+        }else{
+            f32 Delta = 0.01f;
+            if(OSInput.KeyDown(KeyCode_Shift, KeyFlag_Any)) Delta = 0.05f;
+            if(OSInput.KeyRepeat(KeyCode_Left,  KeyFlag_Any)) Result -= Delta;
+            if(OSInput.KeyRepeat(KeyCode_Right, KeyFlag_Any)) Result += Delta;
+            
+            if(OSInput.KeyRepeat(KeyCode_Space, KeyFlag_Any))    State->UsingSlider = 0;
+            if(OSInput.KeyRepeat(KeyCode_Up,    KeyFlag_Any))    State->UsingSlider = 0;
+            if(OSInput.KeyRepeat(KeyCode_Down,  KeyFlag_Any))    State->UsingSlider = 0;
+            if(OSInput.KeyJustDown(KeyCode_Escape, KeyFlag_Any)){
+                State->Flags |= MenuFlag_DidADeactivate;
+                State->UsingSlider = 0;
+            }
+        }
         Result = Clamp(Result, 0.0f, 1.0f);
         
-        State->SetHovered = true;
+        State->Flags |= MenuFlag_SetHovered;
         
-    }else if(!State->UsingSlider && IsPointInRect(OSInput.MouseP, LineRect)){
+    }else if(MenuShouldHoverItem(State, Item, LineRect)){
         State->Hovered = Name;
-        State->SetHovered = true;
+        State->Flags |= MenuFlag_SetHovered;
         
-        if(OSInput.MouseDown(MouseButton_Left, KeyFlag_Any)){
+        if(MenuShouldActivateItem(State)){
+            if(OSInput.KeyJustDown(KeyCode_Space, KeyFlag_Any)) State->Flags |= MenuFlag_KeyboardMode;
             State->UsingSlider = Name;
         }
     }
@@ -131,6 +177,7 @@ MenuPageDoSlider(menu_state *State, menu_page *Page, const char *Name, f32 Curre
 internal void 
 DoMainMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
     menu_page Page = MakeMenuPage(ItemFont, P, YAdvance);
+    MenuFixSelected(State, 3);
     
     if(MenuPageDoText(State, &Page, "Start")){
         ChangeState(GameMode_MainGame, String(STARTUP_LEVEL));
@@ -147,6 +194,7 @@ DoMainMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
 internal void 
 DoPauseMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
     menu_page Page = MakeMenuPage(ItemFont, P, YAdvance);
+    MenuFixSelected(State, 3);
     
     if(MenuPageDoText(State, &Page, "Resume") ||
        OSInput.KeyJustDown(KeyCode_Escape, KeyFlag_Any)){
@@ -164,10 +212,11 @@ DoPauseMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
 internal void 
 DoSettingsMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
     menu_page Page = MakeMenuPage(ItemFont, P, YAdvance);
+    MenuFixSelected(State, 2);
     
     AudioMixer.MasterVolume = V2(MenuPageDoSlider(State, &Page, "Volume", AudioMixer.MasterVolume.E[0]));
     if(MenuPageDoText(State, &Page, "Back") || 
-       OSInput.KeyJustDown(KeyCode_Escape, KeyFlag_Any)){
+       (OSInput.KeyJustDown(KeyCode_Escape, KeyFlag_Any) && !(State->Flags & MenuFlag_DidADeactivate))){
         MenuChangePage(State, State->LastPage);
     }
 }
@@ -189,6 +238,14 @@ UpdateAndRenderMenu(){
     RenderCenteredString(MenuTitleFont, WHITE, P, 0.0f, "Toe Tac Tic");
     P.Y -= MenuTitleFont->Size;
     
+    if(OSInput.KeyJustDown(KeyCode_Up, KeyFlag_Any)){
+        MenuState.SelectedID--;
+        MenuState.Flags |= MenuFlag_KeyboardMode;
+    }else if(OSInput.KeyJustDown(KeyCode_Down, KeyFlag_Any)){
+        MenuState.SelectedID++;
+        MenuState.Flags |= MenuFlag_KeyboardMode;
+    }
+    
     switch(MenuState.Page){
         case MenuPage_Main: {
             DoMainMenu(&MenuState, ItemFont, P, YAdvance);
@@ -201,10 +258,15 @@ UpdateAndRenderMenu(){
         }break;
     }
     
-    if(!MenuState.SetHovered) MenuState.Hovered = 0;
-    MenuState.SetHovered = false;
     
-    if(OSInput.MouseUp(MouseButton_Left, KeyFlag_Any)){
+    if(!(MenuState.Flags & MenuFlag_SetHovered)) MenuState.Hovered = 0;
+    MenuState.Flags &= ~(MenuFlag_SetHovered|MenuFlag_DidADeactivate);
+    
+    if(OSInput.InputFlags & OSInputFlag_MouseMoved) MenuState.Flags &= ~MenuFlag_KeyboardMode;
+    
+    if(!(MenuState.Flags & MenuFlag_KeyboardMode) &&
+       OSInput.MouseUp(MouseButton_Left, KeyFlag_Any)){
+        OSInput.MouseUp(MouseButton_Left, KeyFlag_Any);
         MenuState.UsingSlider = 0;
     }
 }

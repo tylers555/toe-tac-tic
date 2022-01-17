@@ -256,6 +256,10 @@ os_input::TestModifier(os_key_flags Flags){
 }
 
 //~ Keyboard
+// TODO(Tyler): Part of me is unsure about having the if in these 
+// functions even though, it wouldn't be used in the release version
+// and won't be used in the menu at all.
+
 inline b8 
 os_input::KeyUp(u32 Key, os_key_flags Flags){
     if(InputFlags & OSInputFlag_CapturedByUI) return false;

@@ -1,6 +1,7 @@
 #ifndef MENU_H
 #define MENU_H
 
+//~ 
 enum menu_page_type {
     MenuPage_Main,
     MenuPage_Pause,
@@ -15,14 +16,25 @@ struct menu_page {
     u32 IDCounter;
 };
 
+//~
 global_constant u32 MAX_MENU_ITEMS = 16;
 
+typedef u32 menu_flags;
+enum menu_flags_ {
+    MenuFlag_None           = (0 << 0),
+    MenuFlag_SetHovered     = (1 << 0),
+    MenuFlag_KeyboardMode   = (1 << 1),
+    MenuFlag_DidADeactivate = (1 << 2),
+};
+
 struct menu_item_state {
+    u32 ID;
     f32 HoverT;
     f32 ActiveT;
 };
 
 struct menu_state {
+    menu_flags Flags;
     menu_item_state ItemStates[MAX_MENU_ITEMS];
     
     game_mode LastGameMode;
@@ -32,7 +44,8 @@ struct menu_state {
     
     const char *UsingSlider;
     const char *Hovered;
-    b8 SetHovered;
+    
+    s32 SelectedID;
 };
 
 global_constant color MENU_BACKGROUND_COLOR = MakeColor(0x0d2440ff);

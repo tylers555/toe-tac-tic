@@ -145,8 +145,6 @@ DoSettingsMenu(font *ItemFont, v2 P, f32 YAdvance){
 
 internal void
 UpdateAndRenderMenu(){
-    os_event Event;
-    
     GameRenderer.NewFrame(&TransientStorageArena, OSInput.WindowSize, MENU_BACKGROUND_COLOR);
     GameRenderer.SetLightingConditions(WHITE, 1.0f);
     GameRenderer.SetCameraSettings(0.5f);

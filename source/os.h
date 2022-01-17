@@ -333,44 +333,6 @@ os_input::MouseJustDown(os_mouse_button Button, os_key_flags Flags){
     return(Result);
 }
 
-//~ Events
-enum os_event_kind {
-    OSEventKind_None,
-    OSEventKind_KeyUp,
-    OSEventKind_KeyDown,
-    OSEventKind_MouseDown,
-    OSEventKind_MouseUp,
-    OSEventKind_MouseMove,
-    OSEventKind_MouseWheelMove,
-    OSEventKind_Resize,
-};
-
-struct os_event {
-    os_event_kind Kind;
-    union {
-        // Key up
-        // Key down
-        struct {
-            os_key_code Key;
-            b8 JustDown;
-        };
-        
-        // Mouse down/up
-        // Mouse move
-        struct {
-            os_mouse_button Button;
-            v2              MouseP;
-        };
-        
-        // Mouse wheel move
-        struct {
-            s32 WheelMovement;
-        };
-    };
-};
-
-internal void OSProcessInput();
-
 //~ Sound buffer
 struct os_sound_buffer {
     s16 *Samples;
@@ -409,6 +371,7 @@ internal void *DefaultRealloc(void *Memory, umw Size);
 internal void  DefaultFree(void *Pointer);
 
 //~ Miscellaneous
+internal void OSProcessInput();
 internal void OSSleep(u32 Milliseconds);
 internal void OSEndGame();
 

@@ -766,6 +766,7 @@ OSProcessInput(){
 #endif
     OSInput.ScrollMovement = 0;
     OSInput.InputFlags &= ~OSInputFlag_MouseMoved;
+    OSInput.FirstKeyDown = KeyCode_NULL;
     
     //~ Miscellaneous
     // NOTE(Tyler): This is done so that alt-tab does not cause problems, or when a key is pressed
@@ -863,6 +864,7 @@ OSProcessInput(){
                     OSInput.KeyboardState[KeyCode] |= KeyState_IsDown;
                     if(IsDown != WasDown){
                         OSInput.KeyboardState[KeyCode] |= KeyState_JustDown;
+                        if(!OSInput.FirstKeyDown) OSInput.FirstKeyDown = KeyCode;
                     }
                 }else{
                     OSInput.KeyboardState[KeyCode] = KeyState_JustUp;

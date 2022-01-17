@@ -1,4 +1,4 @@
-//TODO(Tyler): Implement an allocator for the stb libraries
+// TODO(Tyler): Implement an allocator for the stb libraries
 #define STB_NO_STDIO
 #define STB_IMAGE_IMPLEMENTATION
 #include "third_party/stb_image.h"
@@ -34,6 +34,8 @@ global asset_system AssetSystem;
 global font_system FontSystem;
 
 global audio_mixer AudioMixer;
+
+global game_settings GameSettings;
 
 //~ TODO(Tyler): Refactor these!
 global font MainFont; // TODO(Tyler): Remove this one
@@ -153,7 +155,7 @@ DoDefaultHotkeys(){
     }
 #endif
     
-    if(OSInput.KeyJustDown(KeyCode_Escape, KeyFlag_Any) && (GameMode != GameMode_Menu)) OpenPauseMenu();
+    if(OSInput.KeyJustDown(PAUSE_KEY, KeyFlag_Any) && (GameMode != GameMode_Menu)) OpenPauseMenu();
 }
 
 internal void

@@ -6,6 +6,7 @@ enum menu_page_type {
     MenuPage_Main,
     MenuPage_Pause,
     MenuPage_Settings,
+    MenuPage_Controls,
 };
 
 struct menu_page {
@@ -44,6 +45,7 @@ struct menu_state {
     menu_page_type Page;
     
     const char *UsingSlider;
+    const char *UsingControlChoice;
     const char *Hovered;
     
     s32 SelectedID;

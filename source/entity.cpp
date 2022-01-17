@@ -343,13 +343,11 @@ TypeName *NewEntity = AllocEntity(ToManager, TypeName); \
 
 void
 entity_manager::HandleInput(){
-    if(OSInput.KeyJustDown(KeyCode_Space)) PlayerInput.Jump = true;
-    PlayerInput.Jump   = (PlayerInput.Jump && OSInput.KeyDown(KeyCode_Space));
-    PlayerInput.Select = OSInput.KeyJustDown('X');
-    PlayerInput.Up     = OSInput.KeyDown(KeyCode_Up); 
-    PlayerInput.Down   = OSInput.KeyDown(KeyCode_Down);
-    PlayerInput.Left   = OSInput.KeyDown(KeyCode_Left);
-    PlayerInput.Right  = OSInput.KeyDown(KeyCode_Right);
+    if(OSInput.KeyJustDown(GameSettings.Jump)) PlayerInput.Jump = true;
+    PlayerInput.Jump   = (PlayerInput.Jump && OSInput.KeyDown(GameSettings.Jump));
+    PlayerInput.Select = OSInput.KeyJustDown(GameSettings.Select);
+    PlayerInput.Left   = OSInput.KeyDown(GameSettings.PlayerLeft);
+    PlayerInput.Right  = OSInput.KeyDown(GameSettings.PlayerRight);
 }
 
 void 
@@ -508,7 +506,7 @@ entity_manager::RenderEntities(){
             StringP += 0.5f*Size;
             StringP.Y += 16;
             StringP = GameRenderer.WorldToScreen(StringP, ScaledItem(1));
-            RenderCenteredString(&DebugFont, GREEN, StringP, -1.0f, "Press X");
+            RenderCenteredString(&DebugFont, GREEN, StringP, -1.0f, "Press %s", OSKeyCodeName(GameSettings.Select));
             RenderRect(Entity->Bounds+Entity->P, 0.0f, PINK, GameItem(1));
         }else{
             RenderRect(Entity->Bounds+Entity->P, 0.0f, BLUE, GameItem(1));

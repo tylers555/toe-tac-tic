@@ -171,6 +171,90 @@ global_constant char KEYBOARD_SHIFT_TABLE[KeyCode_TOTAL] = {
     0, // 126 ~
 };
 
+internal inline const char *
+OSKeyCodeName(os_key_code Key){
+    switch((u32)Key){
+        case KeyCode_Tab:       return "<TAB>";
+        case KeyCode_Space:     return "<SPACEBAR>";
+        case KeyCode_Up:        return "<UP>";
+        case KeyCode_Down:      return "<DOWN>";
+        case KeyCode_Left:      return "<LEFT>";
+        case KeyCode_Right:     return "<RIGHT>";
+        case KeyCode_BackSpace: return "<BACKSPACE>";
+        case KeyCode_Delete:    return "<DELETE>";
+        case KeyCode_Escape:    return "<ESC>";
+        case KeyCode_Return:    return "<RETURN>";
+        case KeyCode_Alt:       return "<ALT>";
+        case KeyCode_Control:   return "<CTRL>";
+        case KeyCode_Shift:     return "<SHIFT>";
+        
+        case KeyCode_F1:        return "<F1>";
+        case KeyCode_F2:        return "<F2>";
+        case KeyCode_F3:        return "<F3>";
+        case KeyCode_F4:        return "<F4>";
+        case KeyCode_F5:        return "<F5>";
+        case KeyCode_F6:        return "<F6>";
+        case KeyCode_F7:        return "<F7>";
+        case KeyCode_F8:        return "<F8>";
+        case KeyCode_F9:        return "<F9>";
+        case KeyCode_F10:       return "<F10>";
+        case KeyCode_F11:       return "<F11>";
+        case KeyCode_F12:       return "<F12>";
+        
+        case 'A':               return "A";
+        case 'B':               return "B";
+        case 'C':               return "C";
+        case 'D':               return "D";
+        case 'E':               return "E";
+        case 'F':               return "F";
+        case 'G':               return "G";
+        case 'H':               return "H";
+        case 'I':               return "I";
+        case 'J':               return "J";
+        case 'K':               return "K";
+        case 'L':               return "L";
+        case 'M':               return "M";
+        case 'N':               return "N";
+        case 'O':               return "O";
+        case 'P':               return "P";
+        case 'Q':               return "Q";
+        case 'R':               return "R";
+        case 'S':               return "S";
+        case 'T':               return "T";
+        case 'U':               return "U";
+        case 'V':               return "V";
+        case 'W':               return "W";
+        case 'X':               return "X";
+        case 'Y':               return "Y";
+        case 'Z':               return "Z";
+        
+        case '0':               return "0";
+        case '1':               return "1";
+        case '2':               return "2";
+        case '3':               return "3";
+        case '4':               return "4";
+        case '5':               return "5";
+        case '6':               return "6";
+        case '7':               return "7";
+        case '8':               return "8";
+        case '9':               return "9";
+        
+        case '\'':              return "'";
+        case ',':               return ",";
+        case '-':               return "-";
+        case '.':               return ".";
+        case '/':               return "/";
+        case ';':               return ";";
+        case '=':               return "=";
+        case '[':               return "[";
+        case '\\':              return "\\";
+        case ']':               return "]";
+        case '`':               return "`";
+        
+        default: return 0;
+    }
+}
+
 //~ General stuff
 struct os_file;
 
@@ -216,6 +300,7 @@ struct os_input {
     v2 WindowSize;
     f32 dTime;
     os_input_flags InputFlags;
+    os_key_code FirstKeyDown;
     
     //~ Mouse stuff
     v2 MouseP;

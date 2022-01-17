@@ -170,8 +170,7 @@ MenuPageDoSlider(menu_state *State, menu_page *Page, const char *Name, f32 Curre
         }
     }
     
-    color Color = MenuItemGetColor(Item, MENU_BASE_COLOR2, 
-                                   (State->Hovered==Name), (State->UsingSlider==Name));
+    color Color = MenuItemGetColor(Item, MENU_BASE_COLOR2, (State->Hovered==Name), (State->UsingSlider==Name));
     RenderRoundedRect(CursorRect, -1.0f, 0.5f*Size, Color, UIItem(0));
     
     Page->P.Y -= Page->YAdvance;
@@ -180,11 +179,47 @@ MenuPageDoSlider(menu_state *State, menu_page *Page, const char *Name, f32 Curre
     return Result;
 }
 
+internal inline void
+MenuPageDoControlChoice(menu_state *State, menu_page *Page, const char *Name, os_key_code *Key){
+    menu_item_state *Item = MenuPageGetItem(State, Page);
+    
+    if(State->UsingControlChoice == Name){
+        if(OSInput.FirstKeyDown){
+            *Key = OSInput.FirstKeyDown;
+            State->UsingControlChoice = 0;
+        }
+    }else if(MenuShouldHoverItem(State, Item, Page->R)){
+        if(MenuShouldActivateItem(State)){
+            if(OSInput.KeyJustDown(KeyCode_Space, KeyFlag_Any)) State->Flags |= MenuFlag_KeyboardMode;
+            State->UsingControlChoice = Name;
+        }
+        
+        State->Hovered = Name;
+        State->Flags |= MenuFlag_SetHovered;
+    }
+    
+    color Color = MenuItemGetColor(Item, MENU_BASE_COLOR, (State->Hovered==Name), (State->UsingControlChoice==Name));
+    
+    f32 StringAdvance = GetStringAdvance(Page->Font, Name);
+    
+    f32 Size = 20;
+    f32 Padding = 40;
+    
+    v2 P = Page->P;
+    P.X -= (StringAdvance+Padding);
+    RenderString(Page->Font, Color, P, 0.0f, Name);
+    P.X += (StringAdvance+Padding);
+    RenderString(Page->Font, Color, P, 0.0f, OSKeyCodeName(*Key));
+    
+    Page->P.Y -= Page->YAdvance;
+    Page->R -= V2(0, Page->YAdvance);
+}
+
 //~ 
 internal void 
 DoMainMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
     menu_page Page = MakeMenuPage(ItemFont, P, YAdvance);
-    MenuFixSelected(State, 3);
+    MenuFixSelected(State, 4);
     
     if(MenuPageDoText(State, &Page, "Start")){
         ChangeState(GameMode_MainGame, String(STARTUP_LEVEL));
@@ -193,7 +228,10 @@ DoMainMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
         State->LastPage = State->Page;
         MenuChangePage(State, MenuPage_Settings);
     }
-    
+    if(MenuPageDoText(State, &Page, "Controls")){
+        State->LastPage = State->Page;
+        MenuChangePage(State, MenuPage_Controls);
+    }
     if(!(State->Flags & MenuFlag_ConfirmQuit) && MenuPageDoText(State, &Page, "Quit")){
         State->Flags |= MenuFlag_ConfirmQuit;
     }else if((State->Flags & MenuFlag_ConfirmQuit) && MenuPageDoText(State, &Page, "Are you sure?")){
@@ -205,16 +243,21 @@ DoMainMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
 internal void 
 DoPauseMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
     menu_page Page = MakeMenuPage(ItemFont, P, YAdvance);
-    MenuFixSelected(State, 3);
+    MenuFixSelected(State, 4);
     
     if(MenuPageDoText(State, &Page, "Resume") ||
-       OSInput.KeyJustDown(KeyCode_Escape, KeyFlag_Any)){
+       OSInput.KeyJustDown(PAUSE_KEY, KeyFlag_Any)){
         ChangeState(State->LastGameMode, String(0));
     }
     if(MenuPageDoText(State, &Page, "Settings")){
         State->LastPage = State->Page;
         MenuChangePage(State, MenuPage_Settings);
     }
+    if(MenuPageDoText(State, &Page, "Controls")){
+        State->LastPage = State->Page;
+        MenuChangePage(State, MenuPage_Controls);
+    }
+    
     if(MenuPageDoText(State, &Page, "Quit")){
         OSEndGame();
     }
@@ -227,7 +270,30 @@ DoSettingsMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
     
     AudioMixer.MasterVolume = V2(MenuPageDoSlider(State, &Page, "Volume", AudioMixer.MasterVolume.E[0]));
     if(MenuPageDoText(State, &Page, "Back") || 
-       (OSInput.KeyJustDown(KeyCode_Escape, KeyFlag_Any) && !(State->Flags & MenuFlag_DidADeactivate))){
+       (OSInput.KeyJustDown(PAUSE_KEY, KeyFlag_Any) && !(State->Flags & MenuFlag_DidADeactivate))){
+        MenuChangePage(State, State->LastPage);
+    }
+}
+
+internal void 
+DoControlsMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
+    menu_page Page = MakeMenuPage(ItemFont, P, YAdvance);
+    MenuFixSelected(State, 10);
+    // TODO(Tyler): HACK This is a HACK!
+    Page.P.Y += 100;
+    Page.R   += V2(0, 100);
+    
+    MenuPageDoControlChoice(State, &Page, "Board up",     &GameSettings.BoardUp);
+    MenuPageDoControlChoice(State, &Page, "Board down",   &GameSettings.BoardDown);
+    MenuPageDoControlChoice(State, &Page, "Board left",   &GameSettings.BoardLeft);
+    MenuPageDoControlChoice(State, &Page, "Board right",  &GameSettings.BoardRight);
+    MenuPageDoControlChoice(State, &Page, "Board place",  &GameSettings.BoardPlace);
+    MenuPageDoControlChoice(State, &Page, "Jump",         &GameSettings.Jump);
+    MenuPageDoControlChoice(State, &Page, "Select",       &GameSettings.Select);
+    MenuPageDoControlChoice(State, &Page, "Player left",  &GameSettings.PlayerLeft);
+    MenuPageDoControlChoice(State, &Page, "Player right", &GameSettings.PlayerRight);
+    if(MenuPageDoText(State, &Page, "Back") || 
+       (OSInput.KeyJustDown(PAUSE_KEY, KeyFlag_Any) && !(State->Flags & MenuFlag_DidADeactivate))){
         MenuChangePage(State, State->LastPage);
     }
 }
@@ -241,7 +307,7 @@ UpdateAndRenderMenu(){
     font *MenuTitleFont = FontSystem.GetFont(String("menu_title_font"), "asset_fonts/Merriweather/Merriweather-Black.ttf", 200);
     font *ItemFont = FontSystem.GetFont(String("menu_item_font"), "asset_fonts/Merriweather/Merriweather-Black.ttf", 75);
     
-    v2 P = V2(OSInput.WindowSize.Width/2, OSInput.WindowSize.Height-200);
+    v2 P = V2(OSInput.WindowSize.Width/2, OSInput.WindowSize.Height-150);
     f32 Padding = 10.0f;
     f32 FontSize = ItemFont->Ascent - ItemFont->Descent;
     f32 YAdvance = FontSize+Padding;
@@ -249,12 +315,14 @@ UpdateAndRenderMenu(){
     RenderCenteredString(MenuTitleFont, WHITE, P, 0.0f, "Toe Tac Tic");
     P.Y -= MenuTitleFont->Size;
     
-    if(OSInput.KeyJustDown(KeyCode_Up, KeyFlag_Any)){
-        MenuState.SelectedID--;
-        MenuState.Flags |= MenuFlag_KeyboardMode;
-    }else if(OSInput.KeyJustDown(KeyCode_Down, KeyFlag_Any)){
-        MenuState.SelectedID++;
-        MenuState.Flags |= MenuFlag_KeyboardMode;
+    if(!MenuState.UsingControlChoice){
+        if(OSInput.KeyJustDown(GameSettings.BoardUp, KeyFlag_Any)){
+            MenuState.SelectedID--;
+            MenuState.Flags |= MenuFlag_KeyboardMode;
+        }else if(OSInput.KeyJustDown(GameSettings.BoardDown, KeyFlag_Any)){
+            MenuState.SelectedID++;
+            MenuState.Flags |= MenuFlag_KeyboardMode;
+        }
     }
     
     switch(MenuState.Page){
@@ -267,6 +335,9 @@ UpdateAndRenderMenu(){
         case MenuPage_Settings: {
             DoSettingsMenu(&MenuState, ItemFont, P, YAdvance);
         }break;
+        case MenuPage_Controls: {
+            DoControlsMenu(&MenuState, ItemFont, P, YAdvance);
+        }break;
     }
     
     
@@ -277,7 +348,6 @@ UpdateAndRenderMenu(){
     
     if(!(MenuState.Flags & MenuFlag_KeyboardMode) &&
        OSInput.MouseUp(MouseButton_Left, KeyFlag_Any)){
-        OSInput.MouseUp(MouseButton_Left, KeyFlag_Any);
         MenuState.UsingSlider = 0;
     }
 }

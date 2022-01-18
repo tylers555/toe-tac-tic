@@ -11,10 +11,7 @@ audio_mixer::PlaySound(asset_sound_effect *Asset, mixer_sound_flags Flags, f32 P
     
     if(!FirstFreeSound){
         FirstFreeSound = PushStruct(&SoundMemory, mixer_sound);
-        InterlockedIncrement(&FreeSoundCounter);
     }
-    
-    InterlockedDecrement(&FreeSoundCounter);
     
     mixer_sound *Sound = FirstFreeSound;
     FirstFreeSound = FirstFreeSound->Next;
@@ -145,7 +142,6 @@ audio_mixer::OutputSamples(memory_arena *WorkingMemory, os_sound_buffer *SoundBu
             Sound->Next = FirstFreeSound;
             FirstFreeSound = Sound;
             
-            InterlockedIncrement(&FreeSoundCounter);
             Sound = Temp;
             
             TicketMutexEnd(&FreeSoundMutex);

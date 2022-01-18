@@ -1,4 +1,6 @@
 
+#include "main.cpp"
+
 #include <windows.h>
 #include <gl/gl.h>
 #include <audioclient.h>
@@ -16,9 +18,6 @@
 #ifdef MoveMemory
 #undef MoveMemory
 #endif
-
-#include "main.cpp"
-
 
 #include "os_win32.h"
 #include "opengl_renderer.cpp"
@@ -477,8 +476,7 @@ WinMain(HINSTANCE Instance,
     //WindowClass.hIcon = ...;
     WindowClass.lpszClassName = "WindowClass";
     
-    if (RegisterClass(&WindowClass))
-    {
+    if(RegisterClass(&WindowClass)){
         MainWindow = CreateWindowExA(0,
                                      WindowClass.lpszClassName,
                                      "FAKE WINDOW",
@@ -507,10 +505,7 @@ WinMain(HINSTANCE Instance,
             
             s32 MonitorRefreshHz = 60;
             s32 RefreshRate = GetDeviceCaps(DeviceContext, VREFRESH);
-            if(RefreshRate > 1)
-            {
-                MonitorRefreshHz = RefreshRate;
-            }
+            if(RefreshRate > 1) MonitorRefreshHz = RefreshRate;
             f32 GameUpdateHz = (f32)(MonitorRefreshHz);
             
             f32 TargetSecondsPerFrame = 1.0f / GameUpdateHz;
@@ -546,7 +541,8 @@ WinMain(HINSTANCE Instance,
                 GameUpdateAndRender();
                 
                 //~ Timing
-#if 0
+                SwapBuffers(DeviceContext);
+                
                 f32 SecondsElapsed = Win32SecondsElapsed(LastTime, Win32GetWallClock());
                 if(SecondsElapsed < TargetSecondsPerFrame)
                 {
@@ -564,36 +560,29 @@ WinMain(HINSTANCE Instance,
                         SecondsElapsed = Win32SecondsElapsed(LastTime, Win32GetWallClock());
                     }
                     OSInput.dTime = TargetSecondsPerFrame;
-                }
-                else
-                {
+                }else{
                     LogMessage("Missed FPS");
                     OSInput.dTime = SecondsElapsed;
                     if(OSInput.dTime > (MAXIMUM_SECONDS_PER_FRAME)){
                         OSInput.dTime = MAXIMUM_SECONDS_PER_FRAME;
                     }
                 }
+                
+#if 0            
+                f32 TimeElapsedForFrame = Win32SecondsElapsed(LastTime, Win32GetWallClock());
+                TargetSecondsPerFrame = TimeElapsedForFrame;
 #endif
-                SwapBuffers(DeviceContext);
                 
                 LARGE_INTEGER EndTime = Win32GetWallClock();
-                f32 TimeElapsedForFrame = Win32SecondsElapsed(LastTime, EndTime);
-                
-                TargetSecondsPerFrame = TimeElapsedForFrame;
                 
                 LastTime = EndTime;
             }
-        }
-        else
-        {
+        }else{
             // TODO(Tyler): Error logging!
             OutputDebugString("Failed to create window!");
             LogMessage("Win32: Failed to create window!");
         }
-        
-    }
-    else
-    {
+    }else{
         // TODO(Tyler): Error logging!
         OutputDebugString("Failed to register window class!");
         LogMessage("Win32: Failed to register window class!!");

@@ -25,7 +25,6 @@ struct audio_mixer {
     
     mixer_sound *FirstSound;
     mixer_sound *FirstFreeSound;
-    u32 FreeSoundCounter;
     
     ticket_mutex FreeSoundMutex;
     

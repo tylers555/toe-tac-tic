@@ -312,7 +312,7 @@ world_manager::WriteWorldsToFiles(){
 
 void
 world_manager::Initialize(memory_arena *Arena){
-    Memory          = MakeArena(Arena, Megabytes(200));
+    Memory          = MakeArena(Arena, Megabytes(100));
     TransientMemory = MakeArena(Arena, Kilobytes(512));
     WorldTable = PushHashTable<string, world_data>(Arena, 512);
 }
@@ -407,6 +407,7 @@ world_manager::CreateNewWorld(string Name){
             asset_tilemap *Asset = AssetSystem.GetTilemap(TilemapToAdd);
             entity_tilemap *Entity = AllocEntity(&Result->Manager, entity_tilemap);
             
+            Entity->Z = 1.0f;
             u32 WidthU32  = 10;
             u32 HeightU32 = 10;
             f32 Width  = (f32)WidthU32 * Asset->TileSize.X;

@@ -22,7 +22,7 @@ entity_manager::Reset(){
 void
 entity_manager::Initialize(memory_arena *Arena){
     *this = {};
-    Memory = MakeArena(Arena, Megabytes(10));
+    Memory = MakeArena(Arena, Megabytes(2));
     
 #define ENTITY_TYPE_(TypeName, ...) InitializeBucketArray(&EntityArray_##TypeName, &Memory);
     Player = PushStruct(&Memory, entity_player);

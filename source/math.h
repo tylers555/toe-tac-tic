@@ -511,6 +511,98 @@ Lerp(v2 A, v2 B, f32 T){
     return(Result);
 }
 
+//~ V2S
+internal inline v2s
+operator+(v2s A, v2s B)
+{
+    v2s Result;
+    Result.X = A.X + B.X;
+    Result.Y = A.Y + B.Y;
+    return(Result);
+}
+
+internal inline v2s
+operator-(v2s A, v2s B)
+{
+    v2s Result;
+    Result.X = A.X - B.X;
+    Result.Y = A.Y - B.Y;
+    return(Result);
+}
+
+internal inline v2s
+operator-(v2s A)
+{
+    v2s Result;
+    Result.X = -A.X;
+    Result.Y = -A.Y;
+    return(Result);
+}
+
+internal inline v2s
+V2Invert(v2s A)
+{
+    v2s Result;
+    Result.X = -A.X;
+    Result.Y = -A.Y;
+    return(Result);
+}
+
+internal inline v2s
+operator*(v2s A, s32 B)
+{
+    v2s Result;
+    Result.X = A.X * B;
+    Result.Y = A.Y * B;
+    return(Result);
+}
+
+internal inline v2s
+operator*(s32 B, v2s A)
+{
+    v2s Result;
+    Result.X = A.X * B;
+    Result.Y = A.Y * B;
+    return(Result);
+}
+
+internal inline v2s
+operator/(v2s A, s32 B)
+{
+    v2s Result;
+    Result.X = A.X / B;
+    Result.Y = A.Y / B;
+    return(Result);
+}
+
+internal inline v2s
+operator+=(v2s &A, v2s B)
+{
+    A = A + B;
+    return(A);
+}
+
+internal inline v2s
+operator-=(v2s &A, v2s B)
+{
+    A = A - B;
+    return(A);
+}
+
+internal inline v2s
+operator*=(v2s &A, s32 B)
+{
+    A = B * A;
+    return(A);
+}
+
+internal inline v2s
+operator/=(v2s &A, s32 B)
+{
+    A = A / B;
+    return(A);
+}
+
 //~
 union v3s {
     struct {

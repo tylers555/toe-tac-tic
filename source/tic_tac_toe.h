@@ -8,10 +8,6 @@ enum ttt_mark_ {
     TTTMark_Player   = 1,
     TTTMark_Computer = 2,
     
-    TTTMark_X = TTTMark_Player,
-    TTTMark_O = TTTMark_Computer,
-    TTTMark_E = 3,
-    
     TTTMark_TOTAL
 };
 

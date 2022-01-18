@@ -23,6 +23,7 @@ global state_change_data StateChangeData;
 
 global world_editor WorldEditor;
 global tic_tac_toe_state TicTacToeState;
+global puzzle_state      PuzzleState;
 global menu_state MenuState;
 
 global string_manager Strings;
@@ -116,6 +117,8 @@ InitializeGame(){
     WorldManager.Initialize(&PermanentStorageArena);
     UIManager.Initialize(&PermanentStorageArena);
     
+    PuzzleState.Memory = MakeArena(&PermanentStorageArena, Kilobytes(8));
+    
     //~ Load things
     LoadedImageTable = PushHashTable<const char *, image>(&PermanentStorageArena, 256);
     AssetSystem.Initialize(&PermanentStorageArena);
@@ -205,6 +208,9 @@ GameUpdateAndRender(){
     if(StateChangeData.DidChange){
         switch(StateChangeData.NewMode){
             case GameMode_None: WorldManager.LoadWorld(StateChangeData.NewLevel); break;
+            case GameMode_Menu: {
+                GameMode = GameMode_Menu;
+            }break;
             case GameMode_WorldEditor:{
                 GameMode = GameMode_WorldEditor;
             }break;
@@ -215,8 +221,8 @@ GameUpdateAndRender(){
             case GameMode_TicTacToe: {
                 GameMode = GameMode_TicTacToe;
             }break;
-            case GameMode_Menu: {
-                GameMode = GameMode_Menu;
+            case GameMode_Puzzle: {
+                GameMode = GameMode_Puzzle;
             }break;
         }
         

@@ -267,7 +267,7 @@ DoPauseMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
 internal void 
 DoSettingsMenu(menu_state *State, font *ItemFont, v2 P, f32 YAdvance){
     menu_page Page = MakeMenuPage(ItemFont, P, YAdvance);
-    MenuFixSelected(State, 2);
+    MenuFixSelected(State, 3);
     
     AudioMixer.MusicMasterVolume = V2(MenuPageDoSlider(State, &Page, "Music volume", AudioMixer.MusicMasterVolume.E[0]));
     AudioMixer.SoundEffectMasterVolume = V2(MenuPageDoSlider(State, &Page, "Sound effect volume", AudioMixer.SoundEffectMasterVolume.E[0]));

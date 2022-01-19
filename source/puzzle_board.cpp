@@ -236,6 +236,7 @@ PuzzleBoardRender(puzzle_state *State, puzzle_board *Board, v2 P, f32 Padding, f
 internal inline b8
 PuzzleBoardTestWin(puzzle_state *State, puzzle_board *Board){
     b8 Result = false;
+    u32 N = Board->N;
     
     
     
@@ -265,6 +266,7 @@ UpdateAndRenderPuzzle(){
         Board.Board[24].Type = PuzzleCell_SlideDown;
         Board.Board[ 4].Type = PuzzleCell_SlideLeft;
         Board.Board[12].Type = PuzzleCell_NeededToWinVertical;
+        Board.Board[12].NeededInARow = 3;
         
         PuzzleState.Turn = PuzzleMark_X;
         PuzzleState.Tilemap = AssetSystem.GetTilemap(String("ttt_board_fancy"));

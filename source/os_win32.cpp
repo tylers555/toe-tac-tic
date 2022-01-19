@@ -543,6 +543,7 @@ WinMain(HINSTANCE Instance,
                 //~ Timing
                 SwapBuffers(DeviceContext);
                 
+#if 1
                 f32 SecondsElapsed = Win32SecondsElapsed(LastTime, Win32GetWallClock());
                 if(SecondsElapsed < TargetSecondsPerFrame)
                 {
@@ -567,8 +568,9 @@ WinMain(HINSTANCE Instance,
                         OSInput.dTime = MAXIMUM_SECONDS_PER_FRAME;
                     }
                 }
+#endif
                 
-#if 0            
+#if 0   
                 f32 TimeElapsedForFrame = Win32SecondsElapsed(LastTime, Win32GetWallClock());
                 TargetSecondsPerFrame = TimeElapsedForFrame;
 #endif
